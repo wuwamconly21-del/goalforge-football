@@ -32,7 +32,7 @@ Dokumentasi rasmi:
 
 ## Sekatan semasa yang telah disahkan
 
-Pada semakan 21 Oktober 2026 (Malaysia), repository hanya mengandungi fail root. Folder app, components, lib, tests, cloudflare, migration dan netlify belum dimuat naik. Workflow akan memberitahu fail yang kurang sebelum cuba memasang dependencies.
+Kemas kini 21 Oktober 2026 (Malaysia): semua folder sumber utama sudah dimuat naik. Semakan struktur, semua suite ujian, build production dan kompilasi Cloudflare dry-run berjaya pada commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Kejayaan build ini tidak bermaksud migrasi data atau deployment production telah selesai.
 
 wrangler.jsonc masih menggunakan cloudflare/migration-worker.ts dan MIGRATION_MODE=import. Ini ialah mod import tertutup, bukan laman penonton. Jangan menukar kepada live sebelum eksport/import data dan verifikasi selesai. Binding D1 yang sudah ditambah dalam konfigurasi dikekalkan; menambah binding sahaja tidak memindahkan data dari Netlify atau menukar backend Durable Objects kepada D1.
 

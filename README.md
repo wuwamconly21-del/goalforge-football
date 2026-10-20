@@ -1,8 +1,8 @@
 # GoalForge — Football Universe
 
-> Repository setup in progress: the v1.4 root files are present, but the application source folders have not yet been uploaded. Production Cloudflare migration and deployment are not complete.
+> Source upload complete: the application folders are present on main. All application checks, production build and Cloudflare dry-run compilation passed for source commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Production Cloudflare migration and deployment are not complete.
 
-See [three-role access design](docs/ROLES-AND-PERMISSIONS.md) and [product, monetization and deployment status](docs/PRODUCT-AND-DEPLOYMENT.md). GitHub Actions now reports missing source files before attempting a build. Descriptions below refer to the full v1.4 source package; they are not proof that the current repository builds or that its features are live.
+See [three-role access design](docs/ROLES-AND-PERMISSIONS.md) and [product, monetization and deployment status](docs/PRODUCT-AND-DEPLOYMENT.md). GitHub Actions verifies source structure, tests and builds before deployment. Passing these checks does not mean the features are already deployed live.
 
 Original 2D football tournament simulator, with a public match broadcast and private organizer controls. Built for Netlify using React, Vite, a Netlify Function and Netlify Blobs. This is a separate project from the hockey simulator.
 
@@ -19,7 +19,7 @@ For future automatic updates, use the GitHub/Cloudflare integration described in
 - Animation adapts to canvas size and respects reduced-motion preferences. A 60 FPS drawing target is used on normal devices; actual frame rate depends on the device. No full browser visual/performance verification was possible in the current environment.
 - `npm run test:presentation` checks 120 seeded games, continuity at every ball keyframe, player motion, VAR verdict matching, unchanged results and all five language dictionaries. GitHub Actions runs it before deployment.
 
-The dedicated GitHub repository now exists. The initial upload contains root files only; the application source folders and initial Cloudflare data migration are still required. The live Netlify or Cloudflare deployment has not been updated by this repository-organization change.
+The dedicated GitHub repository now contains the application source folders. The v1.4 checks and build have passed. Initial Cloudflare data migration and production deployment are still required; the live deployment has not been changed by uploading source.
 
 ## Bahasa Melayu
 

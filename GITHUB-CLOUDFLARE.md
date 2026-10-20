@@ -2,11 +2,11 @@
 
 Repository: https://github.com/wuwamconly21-del/goalforge-football
 
-Current state: GitHub access is connected and the repository exists. Its initial upload contains the root files only. The app, components, lib, netlify, cloudflare, migration and tests folders must also be present before the application can build.
+Current state: GitHub access is connected and the full source upload is complete. The app, components, lib, netlify, cloudflare, migration and tests folders are present. Source checks, all test suites, production build and Cloudflare compilation passed for commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Production migration has not yet been performed.
 
-## Finish the initial source upload
+## Source upload (completed)
 
-Use the contents of the extracted GoalForge v1.4 package. Keep folder names and nesting unchanged at the repository root. Uploading only package.json, README and configuration files is insufficient.
+The GoalForge v1.4 source folders have been uploaded with their original nesting. Routine code changes can now be made through GitHub; the initial folder upload does not need to be repeated.
 
 Do not upload node_modules, .netlify, .wrangler, .migration-private, exports, login files or tokens. The source package already excludes private migration records. Once this initial upload is complete, routine updates can be made through the repository without downloading or uploading a ZIP each time.
 
