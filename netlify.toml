@@ -1,0 +1,42 @@
+[build]
+  command = "npm run build"
+  publish = "netlify-dist"
+  functions = "netlify/functions"
+[build.environment]
+  NODE_VERSION = "22"
+[functions]
+  node_bundler = "esbuild"
+[[redirects]]
+  from = "/api/account"
+  to = "/.netlify/functions/arena?service=account"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/community"
+  to = "/.netlify/functions/arena?service=community"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/banner"
+  to = "/.netlify/functions/arena?service=banner"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/manager"
+  to = "/.netlify/functions/arena?service=manager"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/api/arena"
+  to = "/.netlify/functions/arena?service=arena"
+  status = 200
+  force = true
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

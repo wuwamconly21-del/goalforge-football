@@ -1,0 +1,9 @@
+node_modules/
+.netlify/
+.wrangler/
+.migration-private/
+.private-setup.json
+.env*
+.dev.vars*
+cloudflare-build/
+wrangler.ci.json
