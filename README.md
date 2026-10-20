@@ -8,7 +8,7 @@ Original 2D football tournament simulator, with a public match broadcast and pri
 
 Live: https://goalforge-football-live.netlify.app
 
-For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. The Windows launcher remains an optional one-time migration route. Netlify remains authoritative until a verified cutover completes.
+For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. The Windows launcher remains an optional one-time migration route. Netlify remains authoritative until a verified cutover completes.
 
 ## Version 1.4 — broadcast motion
 

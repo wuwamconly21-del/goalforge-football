@@ -4,6 +4,10 @@ Repository: https://github.com/wuwamconly21-del/goalforge-football
 
 Current state: GitHub access is connected and the full source upload is complete. The app, components, lib, netlify, cloudflare, migration and tests folders are present. Source checks, all test suites, production build and Cloudflare compilation passed for commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Production migration has not yet been performed.
 
+## Full migration without a Windows launcher
+
+Use [FULL-MIGRATION.md](FULL-MIGRATION.md) and the separate GoalForge full migration workflow for the initial data-preserving cutover. Provider credentials belong in GitHub Secrets. The normal update workflow below does not perform first migration.
+
 ## Source upload (completed)
 
 The GoalForge v1.4 source folders have been uploaded with their original nesting. Routine code changes can now be made through GitHub; the initial folder upload does not need to be repeated.

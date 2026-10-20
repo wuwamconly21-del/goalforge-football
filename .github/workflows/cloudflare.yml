@@ -53,6 +53,8 @@ jobs:
       - run: npm test
       - run: npm run test:cloudflare
       - run: npm run test:migration
+      - run: node tests/ci-migration.test.mjs
+      - run: node --check migration/ci-migrate.mjs
       - run: npm run test:presentation
       - run: node tests/deployment.test.mjs
       - run: npm run build
@@ -61,6 +63,9 @@ jobs:
         run: npx --no-install wrangler deploy cloudflare/worker.ts --dry-run --outdir cloudflare-build/live
 
   deploy:
+    concurrency:
+      group: goalforge-production
+      cancel-in-progress: false
     needs: checks
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.CLOUDFLARE_LIVE_READY == 'true'
     runs-on: ubuntu-latest
