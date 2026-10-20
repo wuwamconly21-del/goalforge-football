@@ -1,15 +1,52 @@
-# GoalForge automatic updates
+# GoalForge: automatic updates and first deployment
 
-Status: prepared locally. No GitHub repository or Cloudflare deployment has been created by this workflow yet. Netlify remains the live authority.
+Repository: https://github.com/wuwamconly21-del/goalforge-football
 
-1. Connect the GitHub plugin in ChatGPT. Repository publishing also needs confirmed write access through the connector/CLI; installing the plugin alone does not guarantee it.
-2. Publish the project source to a private repository with default branch `main`. Never include `.migration-private`, provider login files, exports, tokens or `.netlify`.
-3. Complete the first data migration and verify Cloudflare before enabling automatic production deployment. The Windows migration launcher is a separate first-migration tool; the GitHub workflow does not perform migration.
-4. Configure the repository secret `CLOUDFLARE_API_TOKEN` with permissions to update the existing Worker in the chosen account. Enter it in GitHub's secret settings, never in chat or source files.
-5. Set repository variables `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_WORKER_NAME`, and `GOALFORGE_LIVE_URL` to the exact migrated account, Worker and workers.dev URL. Only after successful migration set `CLOUDFLARE_LIVE_READY` to `true`.
+Current state: GitHub access is connected and the repository exists. Its initial upload contains the root files only. The app, components, lib, netlify, cloudflare, migration and tests folders must also be present before the application can build.
 
-The workflow `.github/workflows/cloudflare.yml` tests changes and builds on pull requests and pushes to main. Production deployment happens only on main after successful checks and when the readiness variable is enabled. Deployments use the GitHub `production` environment; any environment approval policy is respected. A failed readiness check prevents deployment. The deployment helper checks that the target already has an initialized GoalForge API and preserves the Durable Object bindings and migration history.
+## Finish the initial source upload
 
-After setup, ordinary changes can be published through authorized repository updates. Users do not need to download a ZIP or run the Windows launcher for each update. Future breaking database changes still need a separate migration plan.
+Use the contents of the extracted GoalForge v1.4 package. Keep folder names and nesting unchanged at the repository root. Uploading only package.json, README and configuration files is insufficient.
 
-Use this GitHub Actions deployment path OR Cloudflare's native Git build integration for the same production branch. Do not enable both, to avoid duplicate production deployments. This workflow uses GitHub Actions and a scoped Cloudflare deployment secret.
+Do not upload node_modules, .netlify, .wrangler, .migration-private, exports, login files or tokens. The source package already excludes private migration records. Once this initial upload is complete, routine updates can be made through the repository without downloading or uploading a ZIP each time.
+
+The workflow .github/workflows/cloudflare.yml lists missing application files before installing dependencies. It runs tests and build checks once source is complete. A source-structure failure means the upload is incomplete; it is not a Cloudflare login failure.
+
+## Recommended low-maintenance deployment
+
+Cloudflare Workers Builds can connect directly to this repository through the official GitHub integration. A normal push to the configured production branch can then build and deploy automatically. The account owner must approve that provider integration once in Cloudflare. No repeated chat device codes are required for ordinary updates.
+
+Official instructions:
+https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/
+
+Before connecting a production auto-deploy branch, complete the first migration and commit the exact verified live Worker configuration. The current wrangler.jsonc intentionally targets the closed migration-worker entry point with MIGRATION_MODE=import; this is not a public viewer application.
+
+## Alternative: GitHub Actions deployment
+
+The included workflow also supports updating an existing, verified live Worker. Use this route instead of native Workers Builds if you want the checks and release managed in GitHub.
+
+Repository secret:
+- CLOUDFLARE_API_TOKEN: a scoped deployment credential for the selected account. Enter it in GitHub Secrets, never in chat or source code.
+
+Repository variables:
+- CLOUDFLARE_ACCOUNT_ID
+- CLOUDFLARE_WORKER_NAME
+- GOALFORGE_LIVE_URL
+- CLOUDFLARE_LIVE_READY: leave unset until the first migration has completed, then set to true.
+
+Deployment is allowed only from main after passing checks. The deployment helper additionally verifies the target is already an initialized live GoalForge application. The workflow cannot provision a new production instance or migrate Netlify records by itself.
+
+Official instructions:
+https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/
+
+Use one production deployment route for this branch; do not enable both native Workers Builds and the Actions deploy job.
+
+## Preserve existing data
+
+First migration requires an authenticated source export, a private import-only target, exact checksum/revision verification, and a controlled switch to one writer. Do not enable Cloudflare production scheduling while Netlify is still allowed to update the same competitions.
+
+The existing D1 binding in wrangler.jsonc is preserved. Adding a D1 binding does not move Netlify records; the prepared backend uses SQLite-backed Durable Objects. Adopting D1 would be a separate implementation and migration task.
+
+Three-role design and monetization recommendations:
+- docs/ROLES-AND-PERMISSIONS.md
+- docs/PRODUCT-AND-DEPLOYMENT.md

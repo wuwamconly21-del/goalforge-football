@@ -1,10 +1,14 @@
 # GoalForge — Football Universe
 
+> Repository setup in progress: the v1.4 root files are present, but the application source folders have not yet been uploaded. Production Cloudflare migration and deployment are not complete.
+
+See [three-role access design](docs/ROLES-AND-PERMISSIONS.md) and [product, monetization and deployment status](docs/PRODUCT-AND-DEPLOYMENT.md). GitHub Actions now reports missing source files before attempting a build. Descriptions below refer to the full v1.4 source package; they are not proof that the current repository builds or that its features are live.
+
 Original 2D football tournament simulator, with a public match broadcast and private organizer controls. Built for Netlify using React, Vite, a Netlify Function and Netlify Blobs. This is a separate project from the hockey simulator.
 
 Live: https://goalforge-football-live.netlify.app
 
-Cloudflare migration from Windows: extract the ZIP, read `WINDOWS-MIGRATION.md`, then open `START-MIGRATION-WINDOWS.cmd` with Node.js 24 installed. The live Netlify site is still authoritative until that guarded migration completes. No new authorization code is needed in chat.
+For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. The Windows launcher remains an optional one-time migration route. Netlify remains authoritative until a verified cutover completes.
 
 ## Version 1.4 — broadcast motion
 
@@ -15,7 +19,7 @@ Cloudflare migration from Windows: extract the ZIP, read `WINDOWS-MIGRATION.md`,
 - Animation adapts to canvas size and respects reduced-motion preferences. A 60 FPS drawing target is used on normal devices; actual frame rate depends on the device. No full browser visual/performance verification was possible in the current environment.
 - `npm run test:presentation` checks 120 seeded games, continuity at every ball keyframe, player motion, VAR verdict matching, unchanged results and all five language dictionaries. GitHub Actions runs it before deployment.
 
-This source version is prepared for publication. Its availability in this archive does not mean that the Netlify or Cloudflare live deployment has been updated. GitHub access is connected; a dedicated GoalForge repository and initial Cloudflare data migration still need to be completed.
+The dedicated GitHub repository now exists. The initial upload contains root files only; the application source folders and initial Cloudflare data migration are still required. The live Netlify or Cloudflare deployment has not been updated by this repository-organization change.
 
 ## Bahasa Melayu
 
@@ -115,5 +119,3 @@ The original password administrator remains the protected owner. After signing i
 Workers API and SQLite-backed Durable Objects are in `cloudflare/`. Alarms start due fixtures without viewers; a Cron sweep provides recovery. The import-only deployment starts closed, verifies exact record checksums and refuses conflicting overwrites. The live entry point has no import route. Accounts, extra admins, transfers and historical results keep their existing data format.
 
 Run `npm run test:cloudflare` and `npm run cloudflare:check`. Account authorization and a verified private export/import are required before production cutover. The default `wrangler.jsonc` intentionally remains in import mode until cutover. See `CLOUDFLARE-MIGRATION.md`. Use `migration/package-source.py` to create source packages; never include `.migration-private`, `.wrangler`, provider credentials, exports or runtime databases.
-#   g o a l f o r g e  
- 

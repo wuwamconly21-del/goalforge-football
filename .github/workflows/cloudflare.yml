@@ -1,0 +1,84 @@
+name: GoalForge checks and Cloudflare updates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: goalforge-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Verify the complete application source is present
+        run: |
+          node --input-type=module <<'NODE'
+          import {existsSync} from 'node:fs';
+          const required = [
+            'app/page.tsx', 'app/globals.css',
+            'components/Manager.tsx', 'components/Teams.tsx', 'components/ui.tsx',
+            'components/arena/FootballPitch.tsx', 'components/arena/MatchPresentation.tsx',
+            'lib/sim.ts', 'lib/arena-server.ts', 'lib/manager-server.ts',
+            'lib/password-auth.ts', 'lib/motion.ts', 'lib/weather.ts', 'lib/i18n.tsx',
+            'netlify/index.html', 'netlify/client.tsx',
+            'netlify/functions/arena.mjs', 'netlify/functions/match-scheduler.mjs',
+            'cloudflare/worker.ts', 'cloudflare/migration-worker.ts',
+            'cloudflare/store.ts', 'cloudflare/sql-records.ts',
+            'migration/deploy-live.mjs', 'migration/deployment-guard.mjs',
+            'tests/load.mjs', 'tests/football.test.mjs',
+            'tests/presentation.test.mjs', 'tests/deployment.test.mjs'
+          ];
+          const missing = required.filter(path => !existsSync(path));
+          if (missing.length) {
+            console.error('::error::The initial upload is incomplete. Upload the source folders from the extracted GoalForge v1.4 package, keeping their original folder structure.');
+            for (const path of missing) console.error('Missing: ' + path);
+            process.exit(1);
+          }
+          console.log('Application source structure verified.');
+          NODE
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:cloudflare
+      - run: npm run test:migration
+      - run: npm run test:presentation
+      - run: node tests/deployment.test.mjs
+      - run: npm run build
+      - run: npm run cloudflare:check
+      - name: Check live Worker compilation without deployment
+        run: npx --no-install wrangler deploy cloudflare/worker.ts --dry-run --outdir cloudflare-build/live
+
+  deploy:
+    needs: checks
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.CLOUDFLARE_LIVE_READY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Update the verified live Worker
+        run: node migration/deploy-live.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+          GOALFORGE_LIVE_URL: ${{ vars.GOALFORGE_LIVE_URL }}
+          CLOUDFLARE_LIVE_READY: ${{ vars.CLOUDFLARE_LIVE_READY }}
