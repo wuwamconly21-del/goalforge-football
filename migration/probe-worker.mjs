@@ -1,5 +1,6 @@
 // Public HTTP health check. No provider token, import or state-changing request.
 import {readFile,appendFile} from 'node:fs/promises';
+import {endpointResult,workerReadiness} from './worker-health.mjs';
 const origin='https://goalforge-football.wuwamconly21.workers.dev';
 const paths=['/','/api/arena','/api/account'];
 const results=[];
@@ -7,19 +8,17 @@ for(const path of paths){
   try {
     const response=await fetch(origin+path,{redirect:'manual',signal:AbortSignal.timeout(20000)});
     const text=(await response.text()).slice(0,200000);
-    let body=null;try{body=JSON.parse(text)}catch{}
-    const item={path,status:response.status,json:!!body&&typeof body==='object',htmlApp:path==='/'&&text.includes('id="root"'),notFound:body?.error==='Not found'};
-    if(path==='/api/arena')item.competitions=Array.isArray(body?.rooms)?body.rooms.length:null;
-    if(path==='/api/account')item.organizerConfigured=body?.organizerConfigured===true;
+    const item=endpointResult(path,response.status,text);
     results.push(item);
   }catch(error){results.push({path,status:null,networkError:['TimeoutError','AbortError'].includes(error.name)?'timeout':'connection-failed'});}
 }
 const config=JSON.parse(await readFile('wrangler.jsonc','utf8'));
-const ready=results[0].status===200&&results[0].htmlApp&&results[1].status===200&&Number.isInteger(results[1].competitions)&&results[2].status===200&&results[2].organizerConfigured===true;
-const report={target:origin,ready,repositoryEntry:config.main,repositoryMode:config.vars?.MIGRATION_MODE||null,results};
+const {ready,state,exitCode}=workerReadiness(results);
+const report={target:origin,ready,state,repositoryEntry:config.main,repositoryMode:config.vars?.MIGRATION_MODE||null,results};
 console.log('GOALFORGE_HEALTH_REPORT '+JSON.stringify(report));
 if(process.env.GITHUB_STEP_SUMMARY){
-  const lines=['# GoalForge public Worker health','', 'Application ready: **'+(ready?'yes':'no')+'**','', '| Endpoint | HTTP status |','| --- | --- |',...results.map(r=>'| '+r.path+' | '+(r.status??r.networkError)+' |'),'','This check uses public GET requests only. A completed check does not migrate data or authorize Cloudflare.',''];
+  const lines=['# GoalForge public Worker health','', 'State: **'+state+'**', '', 'Application ready: **'+(ready?'yes':'no')+'**','', '| Endpoint | HTTP status |','| --- | --- |',...results.map(r=>'| '+r.path+' | '+(r.status??r.networkError)+' |'),'','This check uses public GET requests only. A completed check does not migrate data or authorize Cloudflare.',''];
   await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n'));
 }
-if(!ready)process.exitCode=2;
+if(state==='migration-pending')console.log('::notice::Worker is intentionally closed while migration verification is pending. The viewer application is NOT live. Production deployment guards remain unchanged.');
+process.exitCode=exitCode;

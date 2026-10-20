@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {endpointResult,workerReadiness,migrationMessage} from '../migration/worker-health.mjs';
+const pending=['/','/api/arena','/api/account'].map(path=>endpointResult(path,503,JSON.stringify({error:migrationMessage})));
+assert.deepEqual(workerReadiness(pending),{ready:false,state:'migration-pending',exitCode:0});
+assert.equal(pending[2].organizerConfigured,null,'an unavailable API does not prove that the admin is unconfigured');
+const ready=[endpointResult('/',200,'<div id="root"></div>'),endpointResult('/api/arena',200,'{"rooms":[]}'),endpointResult('/api/account',200,'{"organizerConfigured":true}')];
+assert.deepEqual(workerReadiness(ready),{ready:true,state:'ready',exitCode:0});
+const error=['/','/api/arena','/api/account'].map(path=>endpointResult(path,503,'{"error":"Service temporarily unavailable."}'));
+assert.equal(workerReadiness(error).exitCode,2,'unexpected server failures remain failures');
+assert.equal(workerReadiness([]).exitCode,2);
+assert.equal(workerReadiness([{path:'/',status:200,htmlApp:true}]).exitCode,2);
+assert.equal(workerReadiness(pending.map((r,i)=>i===1?{...r,reason:undefined}:r)).exitCode,2);
+assert.equal(workerReadiness(ready.map((r,i)=>i===2?{...r,organizerConfigured:false}:r)).exitCode,2);
+assert.equal(endpointResult('/api/account',503,'{"organizerConfigured":false}').organizerConfigured,null);
+assert.equal(endpointResult('/api/account',200,'{"organizerConfigured":false}').organizerConfigured,false);
+console.log('Worker health classification passed: pending migration stays not ready, admin status remains unknown on 503, unexpected failures stay errors.');

@@ -7,6 +7,8 @@ on:
     paths:
       - '.github/workflows/worker-health.yml'
       - 'migration/probe-worker.mjs'
+      - 'migration/worker-health.mjs'
+      - 'tests/worker-health.test.mjs'
 
 permissions:
   contents: read
@@ -20,5 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Test readiness classification
+        run: node tests/worker-health.test.mjs
       - name: Check public GoalForge endpoints
         run: node migration/probe-worker.mjs
