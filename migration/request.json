@@ -1,4 +1,4 @@
 {
-  "action": "preflight",
-  "request": "full-migration-1792518906649"
+  "action": "migrate",
+  "request": "authorized-full-migration-1792520843580"
 }
