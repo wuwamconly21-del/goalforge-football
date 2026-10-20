@@ -1,0 +1,10 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {createHash} from 'node:crypto';
+const directory=resolve(process.argv[2]||'.migration-private'),base=process.env.GOALFORGE_MIGRATION_URL,token=process.env.GOALFORGE_MIGRATION_TOKEN;
+if(!base?.startsWith('https://')||!token)throw Error('Private Cloudflare import target required');
+const rows=(await readFile(join(directory,'records.jsonl'),'utf8')).trim().split('\n').filter(Boolean).map(JSON.parse),headers={Authorization:'Bearer '+token,'Content-Type':'application/json'},canonical=r=>JSON.stringify({id:r.id,secret:r.secret,data:r.data,revision:r.revision}),results=[];
+for(const row of rows){let good=false;for(let retry=0;retry<3;retry++){const res=await fetch(base+'/import',{method:'POST',headers,body:canonical(row)});if(res.status===409)throw Error('Target differs from source. Import stopped without overwrite.');if(!res.ok){if(retry===2)throw Error('Import request failed: '+res.status);continue}const value=await res.json();if(value.hash!==createHash('sha256').update(canonical(row)).digest('hex'))throw Error('Imported record checksum mismatch');good=true;break}if(!good)throw Error('Incomplete import');results.push(row.id)}
+for(const row of rows){const res=await fetch(base+'/verify?id='+encodeURIComponent(row.id),{headers}),value=await res.json();if(!res.ok||value.hash!==createHash('sha256').update(canonical(row)).digest('hex')||value.revision!==row.revision)throw Error('Target verification failed')}
+const expected=rows.filter(r=>/^[0-9a-f-]{36}$/i.test(r.id)).map(r=>r.id).sort(),inventory=await (await fetch(base+'/inventory',{headers})).json();if(JSON.stringify(expected)!==JSON.stringify(inventory.rooms.sort()))throw Error('Competition registry differs');
+await writeFile(join(directory,'cloudflare-verification.json'),JSON.stringify({verifiedAt:new Date().toISOString(),target:base,records:results.length,competitions:expected.length,allChecksumsMatched:true},null,2),{mode:0o600});console.log(JSON.stringify({verified:results.length,competitions:expected.length,allChecksumsMatched:true}));

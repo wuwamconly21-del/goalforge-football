@@ -1,0 +1,6 @@
+export const formations=['4-3-3','4-4-2','3-5-2','4-2-3-1','5-3-2'];
+export const styles=['balanced','aggressive','defensive'];
+export function tactics(value:any){return {formation:formations.includes(value?.formation)?value.formation:'4-3-3',style:styles.includes(value?.style)?value.style:'balanced'}}
+export function positions(formation='4-3-3'){const lines=(formations.includes(formation)?formation:'4-3-3').split('-').map(Number);return ['GK',...lines.flatMap((count,i)=>Array(count).fill(i===0?'DEF':i===lines.length-1?'FWD':'MID'))]}
+export function formationPoints(formation='4-3-3'):{x:number,y:number}[]{const lines=(formations.includes(formation)?formation:'4-3-3').split('-').map(Number);return [{x:.035,y:.5},...lines.flatMap((count,i)=>Array.from({length:count},(_,n)=>({x:i===0?.19:i===lines.length-1?.62:.31+(.20*(i-1)/Math.max(1,lines.length-2)),y:count===1?.5:.14+.72*n/(count-1)})))]}
+export function tacticalPower(team:any){const tac=tactics(team.tactics),shape:Record<string,number[]>={'4-3-3':[1.05,.99,1],'4-4-2':[1,1.05,1.03],'3-5-2':[1.04,.94,1.13],'4-2-3-1':[1.01,1.08,1.06],'5-3-2':[.90,1.17,.94]},style:Record<string,number[]>={balanced:[1,1,1,1],aggressive:[1.18,.87,1.07,1.55],defensive:[.86,1.18,.93,.80]},a=shape[tac.formation],b=style[tac.style];return {attack:a[0]*b[0],defence:a[1]*b[1],control:a[2]*b[2],cards:b[3]}}

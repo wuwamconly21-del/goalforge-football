@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {deploymentSettings,checkLiveResponses} from '../migration/deployment-guard.mjs';
+const env={CLOUDFLARE_LIVE_READY:'true',CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),CLOUDFLARE_WORKER_NAME:'goalforge-example',CLOUDFLARE_API_TOKEN:'test-only',GOALFORGE_LIVE_URL:'https://goalforge-example.example.workers.dev'};
+const original={main:'cloudflare/migration-worker.ts',vars:{MIGRATION_MODE:'import'},durable_objects:{bindings:[{name:'ARENA',class_name:'ArenaRecords'}]}};
+const result=deploymentSettings(env,original);
+assert.equal(result.config.main,'cloudflare/worker.ts');
+assert.equal(result.config.vars.MIGRATION_MODE,'live');
+assert.equal(original.vars.MIGRATION_MODE,'import');
+assert.deepEqual(result.config.durable_objects,original.durable_objects);
+for(const key of Object.keys(env))assert.throws(()=>deploymentSettings({...env,[key]:''},original),key);
+for(const url of ['http://goalforge-example.example.workers.dev','https://other.example.workers.dev','https://goalforge-example.example.workers.dev.evil.example','https://u:p@goalforge-example.example.workers.dev','https://goalforge-example.example.workers.dev/path'])assert.throws(()=>deploymentSettings({...env,GOALFORGE_LIVE_URL:url},original));
+assert.throws(()=>checkLiveResponses({rooms:[]},{organizerConfigured:false}));
+assert.throws(()=>checkLiveResponses({error:'maintenance'},{organizerConfigured:true}));
+checkLiveResponses({rooms:[]},{organizerConfigured:true});
+console.log('Deployment guard: explicit readiness, credentials, target matching, initialized API and retained storage bindings passed.');
