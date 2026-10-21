@@ -33,8 +33,9 @@
   force = true
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "https://goalforge-football1.wuwamconly21.workers.dev/:splat"
+  status = 302
+  force = true
 [[headers]]
   for = "/*"
   [headers.values]
