@@ -52,3 +52,7 @@ The public panel counts down in days, hours, minutes and seconds. A selected tim
 The persistent season-opening latch blocks the 16-second fallback, explicit automatic schedules, cron processing and Durable Object alarms until an admin starts the season. Changing automatic progression cannot remove this latch. Once the admin starts the opening, its ceremony and lineups run as usual, and later matches retain their configured progression, result confirmation, pauses and sponsor breaks. Every subsequent season gets a fresh latch. Existing seasons already in progress retain their match state.
 
 Tests cover expired and unset dates, date changes and clearing, invalid dates, registration, permissions, scheduled first matches, viewer polling, cron, actual Cloudflare alarms, concurrent admin starts, later-match automation and five-language countdown rendering.
+
+### Previously prepared seasons (v1.13.1)
+
+A season numbered 2 or higher that was prepared before the opening latch existed also waits for an admin, provided no match is live and no fixture has been played. Existing scheduled dates and fallback timers cannot start that pending season. The first admin start records its opening. Live or already played legacy seasons retain their progression. This also covers registration that was already open before the update.
