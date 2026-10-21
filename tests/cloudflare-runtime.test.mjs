@@ -3,7 +3,7 @@ mkdirSync('.migration-private',{recursive:true,mode:0o700});const dir=mkdtempSyn
 const mf=new Miniflare(convertV4MiniflareOptions({workers:[{name:'goalforge-test',rootPath:process.cwd(),modules:true,scriptPath:bundle,compatibilityDate:'2026-10-20',durableObjects:{ARENA:{className:'ArenaRecords',useSQLite:true}},bindings:{MIGRATION_MODE:'live',ARENA_ORGANIZER_SETUP_HASH:createHash('sha256').update('runtime-setup').digest('hex')},}],log:new Log(LogLevel.ERROR)})),jars=[{},{},{}];
 async function request(path,body,jar=jars[0]){const res=await mf.dispatchFetch('https://goal.test'+path,{method:body?'POST':'GET',headers:{cookie:Object.entries(jar).map(([k,v])=>k+'='+v).join(';'),'CF-Connecting-IP':'127.0.0.'+(jars.indexOf(jar)+1),...(body?{'Content-Type':'application/json',Origin:'https://goal.test'}:{})},...(body?{body:JSON.stringify(body)}:{})});for(const c of res.headers.getSetCookie()){const [k,v]=c.split(';')[0].split('=');jar[k]=v}return {status:res.status,...await res.json()}}
 try{
- assert.equal((await request('/api/health',null,{})).version,'1.8.0');
+ assert.equal((await request('/api/health',null,{})).version,'1.9.0');
  assert.equal((await request('/api/account',{action:'setupPassword',setupKey:'runtime-setup',username:'owner',password:'Runtime-owner-password'})).status,200);assert((await request('/api/account')).owner);
  const invitation=await request('/api/account',{action:'createAdminInvite',label:'Runtime cohost'});assert.equal(invitation.status,200);assert.equal((await request('/api/account',{action:'acceptInvite',inviteToken:invitation.inviteToken,username:'cohost',password:'Runtime-cohost-password'},jars[1])).status,200);assert((await request('/api/account',null,jars[1])).organizer);
  let created=await request('/api/arena',{action:'create',preset:'custom',name:'Cloudflare runtime',entry:'manager',teamLimit:2,mode:'rating'}),room=created.room,revision=created.revision;assert.equal(created.status,200);
@@ -14,6 +14,17 @@ try{
  d=await request('/api/arena',{action:'registration',room,revision,open:false,limit:2});assert.equal(d.status,200);revision=d.revision;
  const at=Date.now()+1800;d=await request('/api/arena',{action:'schedule',room,revision,index:0,autoStart:true,scheduledAt:new Date(at).toISOString()});assert.equal(d.status,200);
  await new Promise(resolve=>setTimeout(resolve,2600));const raw=await request('/__test/raw?room='+room);assert.equal(raw.live?.source,'schedule','actual Durable Object alarm starts a match without a viewer request');assert.equal(raw.live.opened,at);assert.equal(raw.live.presentationStarted,at+83000);assert.equal(raw.live.started,at+99000);assert.equal(raw.live.playbackRate,1);
+
+ const adConfig={publisherId:'ca-pub-1234567890123456',slotId:'1234567890',privacyUrl:'https://example.com/privacy',enabled:false,approved:false};
+ assert.equal((await request('/api/monetization',{revision:-1,config:adConfig},jars[1])).status,403);
+ let ad=await request('/api/monetization',{revision:-1,config:adConfig});assert.equal(ad.status,200);
+ let txt=await mf.dispatchFetch('https://goal.test/ads.txt');assert.equal(await txt.text(),'google.com, pub-1234567890123456, DIRECT, f08c47fec0942fa0\n');
+ let home=await mf.dispatchFetch('https://goal.test/');assert((await home.text()).includes('<meta name="google-adsense-account" content="ca-pub-1234567890123456">'),'actual HTMLRewriter publishes verification without loading Google scripts');
+ let latest=await request('/api/arena?room='+room);let article=await request('/api/arena',{action:'publishArticle',room,revision:latest.revision,title:'Runtime report',body:'Original match analysis. '.repeat(30),language:'ms'});assert.equal(article.status,200);const articlePath='/news/?room='+room+'&article='+article.state.news[0].id;
+ let page=await mf.dispatchFetch('https://goal.test'+articlePath);assert((await page.text()).includes('Runtime report'));
+ ad=await request('/api/monetization',{revision:ad.revision,config:{...adConfig,approved:true,enabled:true}});assert.equal(ad.status,200);
+ page=await mf.dispatchFetch('https://goal.test'+articlePath,{cf:{country:'MY'}});assert((await page.text()).includes('id="consent"'));
+ page=await mf.dispatchFetch('https://goal.test'+articlePath,{cf:{country:'GB'}});assert(!(await page.text()).includes('adsbygoogle'),'Cloudflare country gates ad markup');
  const listed=await request('/api/arena',null,{});assert.equal(listed.rooms.length,1);assert.equal((await request('/api/account?admins=1',null,{})).status,403);assert.equal((await request('/api/nope',null,{})).status,404);
  console.log('PASS: actual Cloudflare workerd + SQLite + RPC, PBKDF2 logins, admin invites, manager purchase, balances, cookies, directory and automatic no-viewer alarm.');
 }finally{await mf.dispose();rmSync(dir,{recursive:true,force:true})}

@@ -1,0 +1,2 @@
+import React from 'react';import {useLocale} from '../lib/i18n';
+export function PublicArticleLinks({s,room}:any){const {t}=useLocale();if(!room||!s.news?.length)return null;return <section className="panel pad spaced"><h2>{t('publicArticles')}</h2><p className="helper">{t('publicArticlesHelp')}</p>{s.news.map((n:any)=><p key={n.id}><a href={`/news/?room=${encodeURIComponent(room)}&article=${encodeURIComponent(n.id)}`} target="_blank" rel="noopener noreferrer">{n.title} ↗</a></p>)}</section>}

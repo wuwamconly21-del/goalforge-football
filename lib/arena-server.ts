@@ -1,3 +1,4 @@
+import {editSeason} from './seasons';
 import {initializeDouble} from './playoffs';
 import {createSchedulePlan,applySchedulePlan} from './tournament-schedule';
 import {broadcastDefaults} from './broadcast';
@@ -45,7 +46,8 @@ export function createArenaHandler(db:ArenaStore,options:AccessOptions={}){retur
  else if(b.action==='start'){if(s.registration?.open)throw Error('Close registration and prepare fixtures first.');if(s.live)throw Error('A match is already active.');const index=b.index===undefined?nextFixtureIndex(s):Number(b.index);if(!Number.isInteger(index)||!s.fixtures[index]||s.fixtures[index].done)throw Error('This season is complete.');kickOff(s,index)}
  else if(b.action==='pause'){if(!s.live||['prematch','ceremony','sponsorBreak','entrance','lineup','countdown','fulltime'].includes(m.status))throw Error('Manual pause is available during play.');s.live={...s.live,autoElapsed:m.playback,started:Date.now(),running:!s.live.running}}
  else if(b.action==='next'){if(!s.live||m.status!=='fulltime')throw Error('Wait for full-time.');confirmMatch(s)}
- else if(b.action==='season'){if(s.live||!s.champion||!s.fixtures.length||!s.fixtures.every((f:any)=>f.done))throw Error('Complete the current season first.');s.history.push({season:s.season,teams:s.teams,fixtures:s.fixtures,format:s.format,playoffMode:s.playoffMode,champion:s.champion,competition:s.competition});s.season++;s.champion=null;delete s.playoff;delete s.schedulePlan;delete s.lastMatchEndedAt;delete s.lastBreakSeconds;s.fixtures=buildCompetition(s.teams,s.format,s.mode,s.legs)}
+ else if(b.action==='editSeason'){Object.assign(s,editSeason(s,b))}
+ else if(b.action==='season'){if(s.live||!s.champion||!s.fixtures.length||!s.fixtures.every((f:any)=>f.done))throw Error('Complete the current season first.');Object.assign(s,editSeason(s,{mode:'archive',targetSeason:s.season+1,confirmName:s.name}))}
  else if(b.action==='publishArticle'){const title=clean(b.title,180),body=clean(b.body,15000),language=['en','ms','id','es','fr'].includes(b.language)?b.language:'en';if(!title||!body)throw Error('Enter a headline and article.');s.news||=[];s.news.unshift({id:crypto.randomUUID(),title,body,language,created:Date.now(),season:s.season,byline:clean(b.byline,60)||({en:'GoalForge Sports Desk',ms:'Meja Sukan GoalForge',id:'Redaksi Olahraga GoalForge',es:'Redacción Deportiva GoalForge',fr:'Rédaction Sportive GoalForge'} as any)[language]});s.news=s.news.slice(0,60)}
  else if(b.action==='removeArticle'){s.news=(s.news||[]).filter((v:any)=>v.id!==b.articleId)}
  else if(b.action==='marketWindow'){ensureMarket(s);s.market.open=b.open===true}
