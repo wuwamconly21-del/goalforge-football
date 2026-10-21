@@ -3,7 +3,7 @@ const {createArenaHandler}=await load('arena-server'),{advanceScheduledRoom,runS
 const realNow=Date.now;let now=Date.parse('2026-10-20T08:00:00Z');Date.now=()=>now;
 try{
  const db=memory(),handler=createArenaHandler(db,{identity:{isAdmin:true,userId:'admin'},passwordOnly:true});async function action(body){const r=await handler(new Request('https://goal.test/api/arena',{method:'POST',body:JSON.stringify(body)}));return {status:r.status,...await r.json()}}
- let d=await action({action:'create',name:'Timed league',preset:'my',teamIds:['t0','t1','t2','t3'],format:'league'}),room=d.room,rev=d.revision;
+ let d=await action({action:'create',name:'Timed league',preset:'my',teamIds:['t0','t1','t2','t3'],format:'league'}),room=d.room,rev=d.revision;const initial=await db.get(room),initialState=JSON.parse(initial.data);initialState.broadcast={openingEnabled:false,breakEnabled:false};db.rows.set(room,{...initial,data:JSON.stringify(initialState)});
  d=await action({action:'schedule',room,revision:rev,index:0,scheduledAt:new Date(now+3000).toISOString(),autoStart:true,weather:'rain'});assert.equal(d.status,200);rev=d.revision;const due=now+3000;
  d=await action({action:'schedule',room,revision:rev,index:1,scheduledAt:new Date(now+4000).toISOString(),autoStart:true,weather:'snow'});assert.equal(d.status,200);rev=d.revision;
  assert.equal((await action({action:'schedule',room,revision:rev,index:2,scheduledAt:new Date(now-10000).toISOString(),autoStart:true})).status,400);

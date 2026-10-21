@@ -1,5 +1,5 @@
 // Update-only deployment. It never imports records, freezes Netlify or resets data.
-import {readFile,writeFile,unlink} from 'node:fs/promises';
+import {readFile,writeFile,unlink,readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 import {spawn} from 'node:child_process';
@@ -29,6 +29,10 @@ try {
   const built=await readFile('netlify-dist/index.html','utf8'),asset=built.match(/src="([^"]+\.js)"/)?.[1],home=await fetch(url,{signal:AbortSignal.timeout(30000)});
   if(!asset||!home.ok||!(await home.text()).includes(asset))throw Error('New frontend assets were not confirmed.');
   console.log('Live API and frontend checks passed. Version: '+health.version);
+  const audioFiles=(await readdir('netlify/public/audio')).filter(name=>name.endsWith('.mp3'));
+  if(audioFiles.length!==10)throw Error('Expected ten broadcast recordings.');
+  await Promise.all(audioFiles.map(async name=>{const [response,local]=await Promise.all([fetch(url+'/audio/'+name,{signal:AbortSignal.timeout(30000)}),readFile('netlify/public/audio/'+name)]);if(!response.ok||!response.headers.get('content-type')?.startsWith('audio/'))throw Error('Audio response failed.');if(!local.equals(Buffer.from(await response.arrayBuffer())))throw Error('Audio bytes differ.');}));
+  console.log('Live audio checks passed. MP3 files: '+audioFiles.length);
 } catch {
   console.error('Deployment stopped. Check migration readiness, repository settings, target availability and deployment permissions.');
   process.exitCode=1;
