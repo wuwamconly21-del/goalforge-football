@@ -1,12 +1,16 @@
 export const ground={w:1060,h:740,left:60,top:90,pw:940,ph:564};
 export function paintGround(ctx:CanvasRenderingContext2D,s:any,weather:string,universe:string){
  const {w,h,left,top,pw,ph}=ground,x=(n:number)=>left+n*pw,y=(n:number)=>top+n*ph;
- const outer=ctx.createLinearGradient(0,0,0,h);outer.addColorStop(0,'#172f39');outer.addColorStop(1,'#0a1c24');ctx.fillStyle=outer;ctx.fillRect(0,0,w,h);
+ const design=s.stadium?.design||{},seat=/^#[0-9a-f]{6}$/i.test(design.seatColor||'')?design.seatColor:'#527a83',theme=({aurora:['#273353','#102f35'],royal:['#392d4b','#191c30'],crimson:['#4b2633','#201b2a']} as any)[design.theme];
+ const outer=ctx.createLinearGradient(0,0,0,h);outer.addColorStop(0,theme?.[0]||'#172f39');outer.addColorStop(1,theme?.[1]||'#0a1c24');ctx.fillStyle=outer;ctx.fillRect(0,0,w,h);
  // Roof ribs, seating and crowd are painted once, not rebuilt every frame.
- for(let row=0;row<5;row++)for(let i=0;i<116;i++){ctx.fillStyle=['#92b2a5','#dfc98e','#527a83','#8e6877'][(i*7+row*3)%4];ctx.globalAlpha=.25+((i+row)%3)*.12;ctx.fillRect(65+i*8,48+row*4,3,2);ctx.fillRect(65+i*8,682+row*5,3,2)}
- ctx.globalAlpha=1;for(const side of [0,1]){ctx.fillStyle='#28434b';ctx.fillRect(side?1022:8,78,30,588);for(let row=0;row<95;row++)for(let col=0;col<3;col++){ctx.fillStyle=(row+col)%3?'#6b928e':'#c6ae81';ctx.fillRect((side?1027:13)+col*8,84+row*6,3,2)}}
+ for(let row=0;row<5;row++)for(let i=0;i<116;i++){ctx.fillStyle=['#92b2a5','#dfc98e',seat,'#8e6877'][(i*7+row*3)%4];ctx.globalAlpha=.25+((i+row)%3)*.12;ctx.fillRect(65+i*8,48+row*4,3,2);ctx.fillRect(65+i*8,682+row*5,3,2)}
+ ctx.globalAlpha=1;for(const side of [0,1]){ctx.fillStyle='#28434b';ctx.fillRect(side?1022:8,78,30,588);for(let row=0;row<95;row++)for(let col=0;col<3;col++){ctx.fillStyle=(row+col)%3?seat:'#c6ae81';ctx.fillRect((side?1027:13)+col*8,84+row*6,3,2)}}
  ctx.fillStyle='#153531';ctx.fillRect(left-9,top-8,pw+18,ph+16);ctx.fillStyle=weather==='snow'?'#456b58':'#276346';ctx.fillRect(left,top,pw,ph);
  for(let i=0;i<14;i++){ctx.fillStyle=i%2?'#ffffff04':'#0000000b';ctx.fillRect(left+i*pw/14,top,pw/14,ph)}
+ if(design.pitch==='checker')for(let col=0;col<14;col++)for(let row=0;row<8;row++)if((col+row)%2){ctx.fillStyle='#ffffff09';ctx.fillRect(left+col*pw/14,top+row*ph/8,pw/14,ph/8)}
+ if(design.roof==='canopy'||design.roof==='halo'){ctx.strokeStyle=design.roof==='halo'?'#e1c58c':'#6a969e';ctx.lineWidth=design.roof==='halo'?5:8;ctx.strokeRect(45,39,970,672);if(design.roof==='canopy')for(let i=0;i<20;i++){ctx.fillStyle='#9ab7bc55';ctx.fillRect(48+i*49,37,3,25)}}
+ if(design.tifo==='chevron'){ctx.fillStyle=seat;for(let i=0;i<14;i++){ctx.beginPath();ctx.moveTo(70+i*65,48);ctx.lineTo(95+i*65,63);ctx.lineTo(120+i*65,48);ctx.fill()}}
  if(weather==='rain'){ctx.fillStyle='#78a5b515';ctx.fillRect(left,top,pw,ph);for(let i=0;i<8;i++){ctx.fillStyle='#a3ceda0b';ctx.beginPath();ctx.ellipse(x(.1+(i*.137)% .85),y(.15+(i*.23)%.7),21+i*2,5,0,0,Math.PI*2);ctx.fill()}}
  if(weather==='snow'){ctx.fillStyle='#e7efeb25';ctx.fillRect(left,top,pw,ph);ctx.fillStyle='#eaf4eb70';ctx.fillRect(left-3,top-4,pw+6,4);ctx.fillRect(left-3,top+ph,pw+6,4)}
  const rect=(a:number,b:number,c:number,d:number)=>ctx.strokeRect(x(a),y(b),c*pw,d*ph),circle=(a:number,b:number,r:number)=>{ctx.beginPath();ctx.arc(x(a),y(b),r*pw,0,Math.PI*2);ctx.stroke()};
@@ -15,7 +19,7 @@ export function paintGround(ctx:CanvasRenderingContext2D,s:any,weather:string,un
  ctx.fillStyle='#e6c879';for(const a of [0,1])for(const b of [0,1]){ctx.fillRect(x(a)-1,y(b)-12,1,12);ctx.beginPath();ctx.moveTo(x(a),y(b)-12);ctx.lineTo(x(a)+8,y(b)-8);ctx.lineTo(x(a),y(b)-5);ctx.fill()}
  const boards=s.sponsors?.filter((v:any)=>v.placement==='board')||[];ctx.textBaseline='middle';ctx.font='bold 9px system-ui';ctx.textAlign='center';for(let i=0;i<6;i++)for(const by of [72,665]){ctx.fillStyle=i%2?'#25433f':'#d8ede4';ctx.fillRect(left+i*pw/6,by,pw/6-5,14);ctx.fillStyle=i%2?'#d4f7e2':'#213732';ctx.fillText((boards.length?boards[i%boards.length].brand:'GOALFORGE / '+universe).slice(0,28),left+(i+.5)*pw/6-2,by+7,pw/6-12)}
  ctx.font='bold 10px system-ui';ctx.fillStyle='#bdd7d1';ctx.fillText(s.sponsors?.find((v:any)=>v.placement==='stadium')?.brand||s.stadium?.name||'GoalForge Stadium',w/2,722);
- for(const [a,b] of [[32,58],[1028,58],[32,697],[1028,697]]){const glow=ctx.createRadialGradient(a,b,1,a,b,70);glow.addColorStop(0,'#e6fff042');glow.addColorStop(1,'#e6fff000');ctx.fillStyle=glow;ctx.fillRect(a-70,b-70,140,140);ctx.fillStyle='#e9f6dc';ctx.fillRect(a-14,b-3,28,6)}
+ for(const [a,b] of [[32,58],[1028,58],[32,697],[1028,697]]){const glow=ctx.createRadialGradient(a,b,1,a,b,70);glow.addColorStop(0,design.lights==='warm'?'#ffc45c65':'#e6fff042');glow.addColorStop(1,'#e6fff000');ctx.fillStyle=glow;ctx.fillRect(a-70,b-70,140,140);ctx.fillStyle='#e9f6dc';ctx.fillRect(a-14,b-3,28,6)}
  if(weather==='sunny'){const light=ctx.createRadialGradient(x(.12),y(.05),0,x(.12),y(.05),pw*.8);light.addColorStop(0,'#ffd07415');light.addColorStop(1,'#ffd07400');ctx.fillStyle=light;ctx.fillRect(left,top,pw,ph)}
  // The screen is physically mounted above the north stand.
  ctx.fillStyle='#06151a';ctx.fillRect(335,5,390,43);ctx.strokeStyle='#7bbcab66';ctx.strokeRect(335,5,390,43);ctx.fillStyle='#79a99b';ctx.font='7px system-ui';ctx.fillText('GOALFORGE ARENA',w/2,12);

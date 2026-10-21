@@ -12,6 +12,10 @@ The former Netlify public URL redirects here. Its original records are retained 
 
 For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. Initial migration is complete; use the normal update route for future deployments. Do not rerun first-migration tools against the live instance.
 
+## Version 1.17 — stadium workshop and Forge Gems preparation
+
+Managers can design stadium seats, roofs, mowing patterns, lights and tifo, with public previews and cached home-pitch rendering. GF unlocks and duplicate-free daily stadium discoveries are available. Forge Gems are a separate cosmetic wallet with isolated preview/sandbox/live records and a fixed-item shop. The ToyyibPay FPX adapter verifies signed callbacks and provider transactions before once-only credit. Checkout is disabled until merchant configuration; no real payment was created or tested. See [setup, verification and launch limitations](docs/TOYYIBPAY-AND-STADIUM.md).
+
 ## Version 1.16 — scouting, player cards and club life
 
 Manager Market now opens the scouting lounge: daily free player packs, virtual-GF standard/focused recruitment, published odds and an Elite/Icon guarantee. Shaped player cards show role archetypes, traits, condition and stamina. New match kickoffs earn once-only GF/XP rewards, and Club Wire displays actual club activity. Fixed card-frame cosmetics use virtual GF; real-money checkout and paid random packs are not enabled. Existing transfers, squads and historical results are retained. See [economy rules and validation](docs/SCOUTING-AND-CLUB-ECONOMY.md).

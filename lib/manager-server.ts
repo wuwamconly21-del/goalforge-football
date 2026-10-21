@@ -1,3 +1,5 @@
+import {stadiumAction,ShopError} from './club-shop';
+import {premiumOwnership} from './premium-server';
 import {scoutAction,ScoutingError} from './scouting';
 import {clubAction,ClubError,preserveClub} from './club-development';
 import {importClubs} from './club-import';
@@ -27,6 +29,7 @@ export function createManagerHandler(db:ArenaStore,options:{identity?:ArenaIdent
  if(!identity?.isManager)return json({error:'Manager login required.'},403);if(!validRoom(room))return json({error:'Invalid competition code.'},400);const row=await advanceScheduledRoom(db,room);if(!row)return json({error:'Competition not found.'},404);const s=JSON.parse(row.data),own=s.teams.find((t:any)=>t.managerId===identity.userId);if(b.revision!==row.revision)return json({error:'Competition updated. Please try again.'},409);
  if(b.action==='claimTeam'){if(!await limited(db,identity.userId,'claimTeam'))return json({error:'Too many claims.',code:'claimLimit'},429);const revision=await submitManagerClaim(db,row,s,identity,b);return json({state:publicState(s,false),revision})}
  else if(b.action==='importTeams'){await importClubs(db,s,b,identity,false)}
+ else if(['stadiumItem','stadiumPack','stadiumDesign'].includes(b.action)){ensureMarket(s);stadiumAction(s,own,b,b.action==='stadiumDesign'?await premiumOwnership(db,identity.userId):[])}
  else if(['trainPlayer','upgradeFacility','clubStadium'].includes(b.action)){ensureMarket(s);clubAction(s,own,b)}
  else if(b.action==='cancelClaim'){const claim=(s.managerClaims||[]).find((c:any)=>c.id===b.claimId&&c.managerId===identity.userId);if(!claim||claim.status!=='pending')throw new ClaimError('claimNotPending',409);Object.assign(claim,{status:'cancelled',reviewedAt:Date.now()})}
  else if(b.action==='registerTeam'){if((s.managerClaims||[]).some((c:any)=>c.managerId===identity.userId&&c.status==='pending'))throw new ClaimError('claimPending',409);if(own)return json({error:'One team per manager in each competition.'},409);if(!s.registration?.open)return json({error:'Registration is closed.'},403);if(s.teams.length>=Math.min(32,s.registration.limit))return json({error:'Registration is full.'},409);if(s.live||s.fixtures.some((f:any)=>f.done))return json({error:'Registration is locked.'},403);const team:any=validateTeams([{...b.team,id:crypto.randomUUID()}],1)[0];if(s.teams.some((t:any)=>t.name.toLowerCase()===team.name.toLowerCase()))throw Error('Team names must be unique.');team.managerId=identity.userId;team.managerName=identity.displayName;s.teams.push(team);s.fixtures=[]}
@@ -37,4 +40,4 @@ export function createManagerHandler(db:ArenaStore,options:{identity?:ArenaIdent
  else return json({error:'Unknown action.'},400);
  prepareFlow(s);
  if(!await db.update({...row,data:JSON.stringify(s),revision:row.revision+1},row))return json({error:'Competition updated. Please try again.'},409);return json({state:publicState(s,false),revision:row.revision+1});
- }catch(e:any){return json({error:e.message||'Request failed.',...(e instanceof ScoutingError||e instanceof MarketError||e instanceof ClaimError||e instanceof ClubError?{code:e.code}:{})},e instanceof ScoutingError?e.status:e instanceof ClubError?e.status:e instanceof ClaimError?e.status:e instanceof MarketError&&e.code==='ownOnly'?403:400)}}}
+ }catch(e:any){return json({error:e.message||'Request failed.',...(e instanceof ShopError||e instanceof ScoutingError||e instanceof MarketError||e instanceof ClaimError||e instanceof ClubError?{code:e.code}:{})},e instanceof ShopError?e.status:e instanceof ScoutingError?e.status:e instanceof ClubError?e.status:e instanceof ClaimError?e.status:e instanceof MarketError&&e.code==='ownOnly'?403:400)}}}
