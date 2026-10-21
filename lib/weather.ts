@@ -4,3 +4,5 @@ export function weatherInfo(s:any,f:any){const type=matchWeather(s,f),n=(f.seed>
 
 // Stable wind and surface descriptions for a shared broadcast, not device RNG.
 export function weatherPresentation(s:any,f:any){const type=matchWeather(s,f),wind=5+(f.seed>>>3)%15;return {type,wind,surface:type==='rain'?'wetSurface':type==='snow'?'snowSurface':'drySurface',visibility:type==='snow'?.87:type==='rain'?.94:1}}
+
+export function surfacePhysics(type:string){return type==='snow'?{traction:.84,playerSpeed:.77,rollSpeed:.76,stride:11}:type==='rain'?{traction:.70,playerSpeed:.94,rollSpeed:1.13,stride:15}:{traction:1,playerSpeed:1,rollSpeed:1,stride:16}}

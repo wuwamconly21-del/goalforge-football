@@ -1,15 +1,16 @@
+import {surfacePhysics} from './weather';
 import {formationPoints,tactics} from './tactics';
 import {random} from './sim';
 export type Point={x:number,y:number};
-export type Frame={t:number,players:Point[],ball:Point,carrier:number,side:number,shot?:boolean,phase:string,eventId?:string,tackler?:number,sprint?:boolean};
+export type Frame={t:number,players:Point[],ball:Point,carrier:number,side:number,shot?:boolean,phase:string,eventId?:string,tackler?:number,sprint?:boolean,surface?:string};
 const clamp=(x:number,a:number,b:number)=>Math.max(a,Math.min(b,x));
 const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
 const smooth=(x:number)=>x*x*(3-2*x);
 const foot=(p:Point,side:number)=>({x:p.x+(side===0?.013:-.013),y:p.y-.012});
 // Animation is seeded independently of match results. Improving presentation never
 // changes an existing result, substitutes a scorer or introduces new match events.
-export function makePlan(ev:any[],seed:number,teams:any[]=[]){
- const rand=random(seed+7239),frames:Frame[]=[],shapes=[0,1].map(side=>formationPoints(tactics(teams[side]?.tactics).formation));
+export function makePlan(ev:any[],seed:number,teams:any[]=[],surface='sunny'){
+ const physics=surfacePhysics(surface),rand=random(seed+7239),frames:Frame[]=[],shapes=[0,1].map(side=>formationPoints(tactics(teams[side]?.tactics).formation));
  const absent=(side:number,n:number,t:number)=>{let injured=false;for(const e of ev){if(e.time>t)break;if(e.side===side&&e.pIndex===n){if(e.type==='injury')injured=true;if(e.type==='substitution')injured=false}}return injured||ev.some(e=>e.type==='card'&&e.card==='red'&&e.side===side&&e.pIndex===n&&e.time<=t)};
  function frame(t:number,side:number,carrier:number,ball:Point,phase='playing',shot=false,duel=false,eventId?:string){
   if(carrier>0&&absent(side,carrier,t))carrier=Array.from({length:10},(_,i)=>i+1).find(i=>!absent(side,i,t))??-1;
@@ -58,16 +59,16 @@ export function makePlan(ev:any[],seed:number,teams:any[]=[]){
  // Bounded movement and monotone interpolation preserve momentum without
  // overshoot. Re-anchor every controlled ball after the speed limit is applied.
  for(let i=1;i<frames.length;i++){
-  const a=frames[i-1],b=frames[i],limit=(b.t-a.t)*.15;
+  const a=frames[i-1],b=frames[i],limit=(b.t-a.t)*.15*physics.playerSpeed;
   b.players=b.players.map((p,j)=>{const q=a.players[j],dist=Math.hypot(p.x-q.x,p.y-q.y),k=dist>limit?limit/dist:1;return {x:q.x+(p.x-q.x)*k,y:q.y+(p.y-q.y)*k}});
   if(b.carrier>=0)b.ball=foot(b.players[b.side*11+b.carrier],b.side);
  }
- frames[0].ball=foot(frames[0].players[6],0);
+ frames[0].surface=surface;frames[0].ball=foot(frames[0].players[6],0);
  return frames;
 }
 export function samplePlan(frames:Frame[],time:number){
  let lo=0,hi=frames.length-1;while(lo<hi){const m=Math.floor((lo+hi+1)/2);if(frames[m].t<=time)lo=m;else hi=m-1}
- const a=frames[lo],b=frames[Math.min(lo+1,frames.length-1)],span=b.t-a.t,p=span===0?0:clamp((time-a.t)/span,0,1),ease=smooth(p);
+ const physics=surfacePhysics(frames[0].surface||'sunny'),a=frames[lo],b=frames[Math.min(lo+1,frames.length-1)],span=b.t-a.t,p=span===0?0:clamp((time-a.t)/span,0,1),ease=smooth(p);
  const previous=frames[Math.max(0,lo-1)],next=frames[Math.min(frames.length-1,lo+2)];
  function curve(i:number,axis:'x'|'y'){
   const start=a.players[i][axis],end=b.players[i][axis];if(!span)return start;
@@ -75,7 +76,7 @@ export function samplePlan(frames:Frame[],time:number){
   const tangent=(x:number,y:number)=>x*y<=0?0:2*x*y/(x+y),m0=tangent(left,slope)*span,m1=tangent(slope,right)*span,p2=p*p,p3=p2*p;
   return (2*p3-3*p2+1)*start+(p3-2*p2+p)*m0+(-2*p3+3*p2)*end+(p3-p2)*m1;
  }
- const players=a.players.map((_,i)=>({x:curve(i,'x'),y:curve(i,'y')}));
+ const players=a.players.map((_,i)=>{const px=curve(i,'x'),py=curve(i,'y'),dx=b.players[i].x-a.players[i].x,dy=b.players[i].y-a.players[i].y,drift=(1-physics.traction)*Math.sin(Math.PI*p)**2*(1-2*p)*.06;return {x:clamp(px-dy*drift,.025,.975),y:clamp(py+dx*drift,.035,.965)}});
  let ball:Point,carrier=a.carrier,side=a.side,height=0,action='dribble',flight=0;
  if(b.shot){
   ball={x:mix(a.ball.x,b.ball.x,p),y:mix(a.ball.y,b.ball.y,p)};carrier=-1;action='shot';flight=p;height=Math.sin(Math.PI*p)*.018;
@@ -86,8 +87,8 @@ export function samplePlan(frames:Frame[],time:number){
   const from=foot(players[a.side*11+a.carrier],a.side),to=foot(players[b.side*11+b.carrier],b.side);
   if(a.carrier===b.carrier){ball=from;ball.y+=Math.sin(time*13)*.0015*Math.sin(Math.PI*p);}
   else{
-   const distance=Math.hypot(a.ball.x-b.ball.x,a.ball.y-b.ball.y),duration=clamp(distance/1.05,.22,.64),release=Math.max(0,1-duration/Math.max(span,.001));
-   flight=clamp((p-release)/Math.max(1-release,.001),0,1);
+   const distance=Math.hypot(a.ball.x-b.ball.x,a.ball.y-b.ball.y),duration=clamp(distance/(1.05*physics.rollSpeed),.22,.85),release=Math.max(0,1-duration/Math.max(span,.001));
+   flight=clamp((p-release)/Math.max(1-release,.001),0,1);if(frames[0].surface==='snow')flight=flight**1.14;
    ball={x:mix(from.x,to.x,flight),y:mix(from.y,to.y,flight)};
    if(flight>0){carrier=flight>=1?b.carrier:-1;action=flight>=1?'receive':'pass';height=Math.sin(Math.PI*flight)*(distance>.42?.018:.003);}
   }

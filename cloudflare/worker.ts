@@ -41,6 +41,6 @@ export async function apiRequest(request:Request,env:any){
  return Response.json({error:'Not found.'},{status:404});
 }
 export default {
- async fetch(request:Request,env:any){const url=new URL(request.url);try{if(env.MIGRATION_MODE!=='live')return secure(Response.json({error:'GoalForge migration verification is in progress.'},{status:503}),true);if(url.pathname==='/api/health'&&request.method==='GET')return secure(Response.json({application:'GoalForge',version:'1.6.0',mode:'live'}),true);if(url.pathname.startsWith('/api/'))return secure(await apiRequest(request,env),true);return secure(await env.ASSETS.fetch(request))}catch{console.error('GoalForge request failed');return secure(Response.json({error:'Service temporarily unavailable.'},{status:503}),true)}},
+ async fetch(request:Request,env:any){const url=new URL(request.url);try{if(env.MIGRATION_MODE!=='live')return secure(Response.json({error:'GoalForge migration verification is in progress.'},{status:503}),true);if(url.pathname==='/api/health'&&request.method==='GET')return secure(Response.json({application:'GoalForge',version:'1.7.0',mode:'live'}),true);if(url.pathname.startsWith('/api/'))return secure(await apiRequest(request,env),true);return secure(await env.ASSETS.fetch(request))}catch{console.error('GoalForge request failed');return secure(Response.json({error:'Service temporarily unavailable.'},{status:503}),true)}},
  async scheduled(_event:any,env:any,ctx:any){if(env.MIGRATION_MODE==='live')ctx.waitUntil(runSchedules(cloudStore(env.ARENA)))}
 };

@@ -1,0 +1,23 @@
+export const ground={w:1060,h:740,left:60,top:90,pw:940,ph:564};
+export function paintGround(ctx:CanvasRenderingContext2D,s:any,weather:string,universe:string){
+ const {w,h,left,top,pw,ph}=ground,x=(n:number)=>left+n*pw,y=(n:number)=>top+n*ph;
+ const outer=ctx.createLinearGradient(0,0,0,h);outer.addColorStop(0,'#172f39');outer.addColorStop(1,'#0a1c24');ctx.fillStyle=outer;ctx.fillRect(0,0,w,h);
+ // Roof ribs, seating and crowd are painted once, not rebuilt every frame.
+ for(let row=0;row<5;row++)for(let i=0;i<116;i++){ctx.fillStyle=['#92b2a5','#dfc98e','#527a83','#8e6877'][(i*7+row*3)%4];ctx.globalAlpha=.25+((i+row)%3)*.12;ctx.fillRect(65+i*8,48+row*4,3,2);ctx.fillRect(65+i*8,682+row*5,3,2)}
+ ctx.globalAlpha=1;for(const side of [0,1]){ctx.fillStyle='#28434b';ctx.fillRect(side?1022:8,78,30,588);for(let row=0;row<95;row++)for(let col=0;col<3;col++){ctx.fillStyle=(row+col)%3?'#6b928e':'#c6ae81';ctx.fillRect((side?1027:13)+col*8,84+row*6,3,2)}}
+ ctx.fillStyle='#153531';ctx.fillRect(left-9,top-8,pw+18,ph+16);ctx.fillStyle=weather==='snow'?'#456b58':'#276346';ctx.fillRect(left,top,pw,ph);
+ for(let i=0;i<14;i++){ctx.fillStyle=i%2?'#ffffff04':'#0000000b';ctx.fillRect(left+i*pw/14,top,pw/14,ph)}
+ if(weather==='rain'){ctx.fillStyle='#78a5b515';ctx.fillRect(left,top,pw,ph);for(let i=0;i<8;i++){ctx.fillStyle='#a3ceda0b';ctx.beginPath();ctx.ellipse(x(.1+(i*.137)% .85),y(.15+(i*.23)%.7),21+i*2,5,0,0,Math.PI*2);ctx.fill()}}
+ if(weather==='snow'){ctx.fillStyle='#e7efeb25';ctx.fillRect(left,top,pw,ph);ctx.fillStyle='#eaf4eb70';ctx.fillRect(left-3,top-4,pw+6,4);ctx.fillRect(left-3,top+ph,pw+6,4)}
+ const rect=(a:number,b:number,c:number,d:number)=>ctx.strokeRect(x(a),y(b),c*pw,d*ph),circle=(a:number,b:number,r:number)=>{ctx.beginPath();ctx.arc(x(a),y(b),r*pw,0,Math.PI*2);ctx.stroke()};
+ ctx.strokeStyle='#e6f9e5a8';ctx.lineWidth=1.7;rect(0,0,1,1);ctx.beginPath();ctx.moveTo(x(.5),y(0));ctx.lineTo(x(.5),y(1));ctx.stroke();circle(.5,.5,.087);circle(.5,.5,.002);
+ for(const side of [0,1]){rect(side?.843:0,.205,.157,.59);rect(side?.948:0,.367,.052,.266);circle(side?.895:.105,.5,.0025);ctx.beginPath();ctx.arc(x(side?.895:.105),y(.5),.087*pw,side?Math.PI-.92:-.92,side?Math.PI+.92:.92);ctx.stroke();ctx.fillStyle='#d8fff018';ctx.fillRect(x(side?1:-.023),y(.443),pw*.023,ph*.114);rect(side?1:-.023,.443,.023,.114);ctx.lineWidth=.6;for(let i=1;i<9;i++){ctx.beginPath();ctx.moveTo(x(side?1:-.023),y(.443+i*.114/9));ctx.lineTo(x(side?1.023:0),y(.443+i*.114/9));ctx.stroke()}ctx.lineWidth=1.7}
+ ctx.fillStyle='#e6c879';for(const a of [0,1])for(const b of [0,1]){ctx.fillRect(x(a)-1,y(b)-12,1,12);ctx.beginPath();ctx.moveTo(x(a),y(b)-12);ctx.lineTo(x(a)+8,y(b)-8);ctx.lineTo(x(a),y(b)-5);ctx.fill()}
+ const boards=s.sponsors?.filter((v:any)=>v.placement==='board')||[];ctx.textBaseline='middle';ctx.font='bold 9px system-ui';ctx.textAlign='center';for(let i=0;i<6;i++)for(const by of [72,665]){ctx.fillStyle=i%2?'#25433f':'#d8ede4';ctx.fillRect(left+i*pw/6,by,pw/6-5,14);ctx.fillStyle=i%2?'#d4f7e2':'#213732';ctx.fillText((boards.length?boards[i%boards.length].brand:'GOALFORGE / '+universe).slice(0,28),left+(i+.5)*pw/6-2,by+7,pw/6-12)}
+ ctx.font='bold 10px system-ui';ctx.fillStyle='#bdd7d1';ctx.fillText(s.sponsors?.find((v:any)=>v.placement==='stadium')?.brand||s.stadium?.name||'GoalForge Stadium',w/2,722);
+ for(const [a,b] of [[32,58],[1028,58],[32,697],[1028,697]]){const glow=ctx.createRadialGradient(a,b,1,a,b,70);glow.addColorStop(0,'#e6fff042');glow.addColorStop(1,'#e6fff000');ctx.fillStyle=glow;ctx.fillRect(a-70,b-70,140,140);ctx.fillStyle='#e9f6dc';ctx.fillRect(a-14,b-3,28,6)}
+ if(weather==='sunny'){const light=ctx.createRadialGradient(x(.12),y(.05),0,x(.12),y(.05),pw*.8);light.addColorStop(0,'#ffd07415');light.addColorStop(1,'#ffd07400');ctx.fillStyle=light;ctx.fillRect(left,top,pw,ph)}
+ // The screen is physically mounted above the north stand.
+ ctx.fillStyle='#06151a';ctx.fillRect(335,5,390,43);ctx.strokeStyle='#7bbcab66';ctx.strokeRect(335,5,390,43);ctx.fillStyle='#79a99b';ctx.font='7px system-ui';ctx.fillText('GOALFORGE ARENA',w/2,12);
+}
+export function playerSprite(color:string,num:string){const c=document.createElement('canvas');c.width=80;c.height=88;const g=c.getContext('2d')!;g.scale(2,2);g.fillStyle='#0004';g.beginPath();g.ellipse(21,29,10,3.5,0,0,Math.PI*2);g.fill();g.fillStyle=color;g.strokeStyle='#effff1bb';g.lineWidth=1.4;g.beginPath();g.arc(20,20,9,0,Math.PI*2);g.fill();g.stroke();g.fillStyle='#fff';g.font='bold 9px system-ui';g.textAlign='center';g.textBaseline='middle';g.strokeStyle='#0009';g.lineWidth=2.5;g.strokeText(num,20,20.5);g.fillText(num,20,20.5);return c}
