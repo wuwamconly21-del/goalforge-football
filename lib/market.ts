@@ -1,3 +1,4 @@
+import {scoutingView} from './scouting';
 // Every transfer changes one competition record with the store's revision guard.
 export const STARTING_BUDGET=30_000_000,MAX_RESERVES=7;
 export class MarketError extends Error{constructor(public code:string){super(code)}}
@@ -19,7 +20,7 @@ export function ensureMarket(s:any){
  return market;
 }
 export const teamInMatch=(s:any,id:string)=>!!s.live&&[s.fixtures[s.live.index].home,s.fixtures[s.live.index].away].includes(id);
-export function marketView(s:any,team:any){const market=ensureMarket(s);return {open:market.open!==false,balance:team?.finance.balance??0,locked:!!team&&teamInMatch(s,team.id),rosterLocked:!!team&&market.lockedTeams.includes(team.id),agents:market.agents.map((p:any)=>({...p,price:playerValue(p)})),listings:market.listings.map((l:any)=>{const seller=s.teams.find((v:any)=>v.id===l.seller),player=[...seller.bench,...seller.reserves].find((p:any)=>p.id===l.playerId);return {...l,player,sellerName:seller.name,sellerShort:seller.short,sellerBusy:teamInMatch(s,seller.id)}}),history:market.history.slice(0,40)}}
+export function marketView(s:any,team:any){const market=ensureMarket(s);return {scouting:scoutingView(team),open:market.open!==false,balance:team?.finance.balance??0,locked:!!team&&teamInMatch(s,team.id),rosterLocked:!!team&&market.lockedTeams.includes(team.id),agents:market.agents.map((p:any)=>({...p,price:playerValue(p)})),listings:market.listings.map((l:any)=>{const seller=s.teams.find((v:any)=>v.id===l.seller),player=[...seller.bench,...seller.reserves].find((p:any)=>p.id===l.playerId);return {...l,player,sellerName:seller.name,sellerShort:seller.short,sellerBusy:teamInMatch(s,seller.id)}}),history:market.history.slice(0,40)}}
 export function transferAction(s:any,own:any,b:any){
  if(!own||b.teamId!==own.id)fail('ownOnly');
  const market=ensureMarket(s);

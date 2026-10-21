@@ -12,6 +12,10 @@ The former Netlify public URL redirects here. Its original records are retained 
 
 For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. Initial migration is complete; use the normal update route for future deployments. Do not rerun first-migration tools against the live instance.
 
+## Version 1.16 — scouting, player cards and club life
+
+Manager Market now opens the scouting lounge: daily free player packs, virtual-GF standard/focused recruitment, published odds and an Elite/Icon guarantee. Shaped player cards show role archetypes, traits, condition and stamina. New match kickoffs earn once-only GF/XP rewards, and Club Wire displays actual club activity. Fixed card-frame cosmetics use virtual GF; real-money checkout and paid random packs are not enabled. Existing transfers, squads and historical results are retained. See [economy rules and validation](docs/SCOUTING-AND-CLUB-ECONOMY.md).
+
 ## Version 1.5 — admin invitations and playoff rules
 
 - Admin sign-in: https://goalforge-football1.wuwamconly21.workers.dev/?admin=1. The owner opens Admin access, creates a private one-use 24-hour invitation and copies it to the intended person. Each invitee chooses their own credentials. Do not share the owner's credentials or use the public sign-in link as a substitute for an invitation.
