@@ -2,6 +2,8 @@
 
 Status: the GitHub migration workflow is prepared. This document does not certify that production migration has run. The existing Netlify application remains authoritative until the workflow reports **complete**.
 
+Selected target: [https://goalforge-football1.wuwamconly21.workers.dev](https://goalforge-football1.wuwamconly21.workers.dev), Worker **goalforge-football1**. This replaces the earlier goalforge-football Worker as the migration destination. Netlify remains the source until verified cutover; the prior Cloudflare Worker is not deleted or imported into.
+
 ## One-time owner setup
 
 No Windows launcher or repeat ZIP upload is required. Add provider credentials directly to GitHub; never paste them into chat, issues, commits or workflow inputs.
@@ -11,7 +13,7 @@ Open [repository Actions settings](https://github.com/wuwamconly21-del/goalforge
 | Secret | Value |
 | --- | --- |
 | NETLIFY_AUTH_TOKEN | A personal access token from the Netlify account that can read this site's Blobs and deploy the existing site |
-| CLOUDFLARE_API_TOKEN | A deployment token for the account containing the existing goalforge-football Worker |
+| CLOUDFLARE_API_TOKEN | A deployment token for the account containing the existing goalforge-football1 Worker |
 
 Use Cloudflare's **Edit Cloudflare Workers** token template for the selected account. Ensure it permits deploying this Worker, updating its secrets and accessing its configured Durable Object/D1 bindings. Do not use the Global API Key. The migration does not change subscriptions or buy a plan.
 
@@ -24,7 +26,7 @@ Add these **repository variables** using the Variables tab:
 
 Leave CLOUDFLARE_LIVE_READY unset during first migration.
 
-In Cloudflare: **Workers & Pages → goalforge-football → Settings → Builds → Disconnect** temporarily disconnects native builds from GitHub. This leaves the deployed Worker in place. Wait for any existing builds/deployments to finish or cancel them before migration. The pause prevents an older import-mode build from replacing the verified live deployment during cutover. Then set CLOUDFLARE_NATIVE_BUILDS_PAUSED=true.
+In Cloudflare: **Workers & Pages → goalforge-football1 → Settings → Builds → Disconnect** temporarily disconnects native builds from GitHub. This leaves the deployed Worker in place. Wait for any existing builds/deployments to finish or cancel them before migration. The pause prevents an older import-mode build from replacing the verified live deployment during cutover. Then set CLOUDFLARE_NATIVE_BUILDS_PAUSED=true.
 
 If Netlify is also connected to this repository, stop its automatic builds during cutover too; an overlapping Netlify deployment can undo the verified redirect.
 

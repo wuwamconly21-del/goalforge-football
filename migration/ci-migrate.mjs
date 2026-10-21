@@ -2,7 +2,7 @@ import {readFile,writeFile,mkdir,rename,access,rm,appendFile} from 'node:fs/prom
 import {spawn} from 'node:child_process';
 import {randomBytes,createHash} from 'node:crypto';
 import {cutover} from './cutover.mjs';
-import {migrationSettings,targetIsEmpty,sameSnapshot,sourceSite,sourceURL,targetURL} from './ci-migration-guards.mjs';
+import {migrationSettings,targetIsEmpty,sameSnapshot,sourceSite,sourceURL,targetURL,checkTargetBindings} from './ci-migration-guards.mjs';
 
 class SafeError extends Error {}
 const privateDir='.migration-private/ci';
@@ -43,8 +43,7 @@ async function providerSettings(){
   const data=await requestJSON(url,{headers:{Authorization:'Bearer '+env.CLOUDFLARE_API_TOKEN}});
   if(!data.success)throw new SafeError('Cloudflare account or Worker permissions could not be verified.');
   const bindings=data.result?.bindings||[];
-  if(!bindings.some(b=>b.name==='MIGRATION_MODE'&&b.text==='import'))throw new SafeError('The existing Cloudflare Worker is not confirmed in import mode. No deployment was attempted.');
-  if(!bindings.some(b=>b.name==='ARENA'&&b.type==='durable_object_namespace'))throw new SafeError('Existing ARENA storage binding not found. No data was changed.');
+  try{checkTargetBindings(bindings);}catch(error){throw new SafeError(error.message);}
 }
 async function assertHead(){
   const head=(await command('git',['ls-remote','origin','refs/heads/main'],{label:'GitHub branch check'})).split(/\s/)[0];

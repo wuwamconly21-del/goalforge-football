@@ -6,7 +6,9 @@ See [three-role access design](docs/ROLES-AND-PERMISSIONS.md) and [product, mone
 
 Original 2D football tournament simulator, with a public match broadcast and private organizer controls. Built for Netlify using React, Vite, a Netlify Function and Netlify Blobs. This is a separate project from the hockey simulator.
 
-Live: https://goalforge-football-live.netlify.app
+Live source: https://goalforge-football-live.netlify.app
+
+Selected Cloudflare migration target: https://goalforge-football1.wuwamconly21.workers.dev (pending verified cutover).
 
 For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. The Windows launcher remains an optional one-time migration route. Netlify remains authoritative until a verified cutover completes.
 

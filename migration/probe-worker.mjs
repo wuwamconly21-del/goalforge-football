@@ -1,7 +1,7 @@
 // Public HTTP health check. No provider token, import or state-changing request.
 import {readFile,appendFile} from 'node:fs/promises';
 import {endpointResult,workerReadiness} from './worker-health.mjs';
-const origin='https://goalforge-football.wuwamconly21.workers.dev';
+import {targetURL as origin} from './ci-migration-guards.mjs';
 const paths=['/','/api/arena','/api/account'];
 const results=[];
 for(const path of paths){

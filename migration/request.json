@@ -1,4 +1,5 @@
 {
   "action": "migrate",
-  "request": "authorized-full-migration-1792520843580"
+  "target": "https://goalforge-football1.wuwamconly21.workers.dev",
+  "request": "confirmed-disconnected-new-target-1792544607422"
 }

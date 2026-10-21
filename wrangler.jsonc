@@ -1,48 +1,48 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "goalforge-football",
-	"main": "cloudflare/migration-worker.ts",
-	"compatibility_date": "2026-10-20",
-	"workers_dev": true,
-	"assets": {
-		"directory": "./netlify-dist",
-		"binding": "ASSETS",
-		"not_found_handling": "single-page-application",
-		"run_worker_first": true
-	},
-	"vars": {
-		"MIGRATION_MODE": "import"
-	},
-	"durable_objects": {
-		"bindings": [
-			{
-				"name": "ARENA",
-				"class_name": "ArenaRecords"
-			}
-		]
-	},
-	"migrations": [
-		{
-			"tag": "v1",
-			"new_sqlite_classes": [
-				"ArenaRecords"
-			]
-		}
-	],
-	"triggers": {
-		"crons": [
-			"* * * * *"
-		]
-	},
-	"observability": {
-		"enabled": true
-	},
-	"d1_databases": [
-		{
-			"binding": "goalforge_db",
-			"database_name": "goalforge-db",
-			"database_id": "fa480f70-be3d-4120-8e82-a4098b55262f",
-			"remote": true
-		}
-	]
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "goalforge-football1",
+  "main": "cloudflare/migration-worker.ts",
+  "compatibility_date": "2026-10-20",
+  "workers_dev": true,
+  "assets": {
+    "directory": "./netlify-dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "vars": {
+    "MIGRATION_MODE": "import"
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ARENA",
+        "class_name": "ArenaRecords"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "ArenaRecords"
+      ]
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "goalforge_db",
+      "database_name": "goalforge-db",
+      "database_id": "fa480f70-be3d-4120-8e82-a4098b55262f",
+      "remote": true
+    }
+  ]
 }

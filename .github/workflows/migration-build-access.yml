@@ -32,10 +32,10 @@ jobs:
           }
           try {
             const scripts=await get('/workers/scripts');
-            const worker=Array.isArray(scripts.result)?scripts.result.find(s=>s.id==='goalforge-football'):null;
+            const worker=Array.isArray(scripts.result)?scripts.result.find(s=>s.id==='goalforge-football1'):null;
             if(!worker?.tag)throw Error('Worker build identifier could not be read. No settings changed.');
             const triggers=await get('/builds/workers/'+worker.tag+'/triggers');
-            const report={worker:'goalforge-football',operation:'read-only',buildsHTTP:triggers.status,buildAccess:triggers.success===true};
+            const report={worker:'goalforge-football1',operation:'read-only',buildsHTTP:triggers.status,buildAccess:triggers.success===true};
             if(triggers.success&&Array.isArray(triggers.result)){
               report.triggers=triggers.result.map(t=>({id:t.trigger_uuid,branchIncludes:t.branch_includes,branchExcludes:t.branch_excludes}));
               const builds=await get('/builds/workers/'+worker.tag+'/builds');
