@@ -1,3 +1,4 @@
+import {awaitsSeasonOpening} from './season-opening';
 import {prepareFlow,flowHeld,confirmDueAt} from './match-flow';
 import {applySchedulePlan} from './tournament-schedule';
 import {broadcastSettings} from './broadcast';
@@ -11,7 +12,7 @@ export function kickOff(s:any,index:number,opened=Date.now(),source='manual'){
 }
 export function confirmMatch(s:any,at=Date.now()){const f=s.fixtures[s.live.index];f.done=true;f.confirmedAt=at;s.live=null;s.lastMatchEndedAt=at;const cfg=broadcastSettings(s);s.lastBreakSeconds=cfg.breakEnabled?cfg.breakSeconds:0;const previousCount=s.fixtures.length;advance(s);applySchedulePlan(s,previousCount);if(s.format==='league'&&s.fixtures.every((f:any)=>f.done))s.champion=table(s)[0]?.id||null;prepareFlow(s,at)}
 export function scheduledChanges(s:any,now=Date.now()){
- if(s.removedAt||s.registration?.open||s.champion||flowHeld(s,now))return false;let changed=prepareFlow(s,now);
+ if(awaitsSeasonOpening(s)||s.removedAt||s.registration?.open||s.champion||flowHeld(s,now))return false;let changed=prepareFlow(s,now);
  for(let limit=0;limit<512;limit++){
   const due=s.fixtures.map((f:any,index:number)=>({f,index,at:Date.parse(f.scheduledAt)})).filter((v:any)=>!v.f.done&&v.f.autoStart===true&&Number.isFinite(v.at)&&v.at<=now&&v.index!==s.live?.index).sort((a:any,b:any)=>a.at-b.at||a.index-b.index);
   if(s.live){if(!s.live.running||matchClock(s,now).status!=='fulltime')break;const end=confirmDueAt(s);if(now<end||!s.flow?.enabled&&s.live.source!=='schedule'&&!due.length)break;confirmMatch(s,end);changed=true;if(s.champion)break;continue}

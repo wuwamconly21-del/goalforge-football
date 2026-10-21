@@ -1,3 +1,4 @@
+import {waitingSeason} from './season-opening';
 import {validEntryCount,entryMinimum} from './tournament-entry';
 import {enableFlow} from './match-flow';
 import {matchClock} from './sim';
@@ -33,6 +34,7 @@ export function editSeason(current:any,b:any,now=Date.now()){
  if(s.registration?.open)s.fixtures=[];
  for(const f of s.fixtures){delete f.scheduledAt;f.autoStart=false}initializeDouble(s);
  if(b.schedule){if(s.registration?.open||!s.fixtures.length)throw Error('Close registration and prepare fixtures before scheduling.');s.schedulePlan=createSchedulePlan(s,b.schedule,now);applySchedulePlan(s)}
+ s.seasonOpening=waitingSeason(b.openingAt??null,now);if(b.schedule&&s.seasonOpening.at&&Date.parse(b.schedule.startAt)<Date.parse(s.seasonOpening.at))throw Error('Match schedule begins before the season opening.');
  enableFlow(s,current.flow?.enabled!==false,now);
  s.seasonLog=[...(s.seasonLog||[]),{from,to:target,operation:b.mode,at:now,reason}].slice(-100);return s;
 }
