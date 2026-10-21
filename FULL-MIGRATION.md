@@ -1,10 +1,10 @@
 # Full migration: Netlify → Cloudflare
 
-Status: the GitHub migration workflow is prepared. This document does not certify that production migration has run. The existing Netlify application remains authoritative until the workflow reports **complete**.
+Status: **complete** on 21 October 2026 at 09:07 Malaysia time. [Successful migration run](https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781) reached complete after stable-snapshot verification, exact record/inventory verification, live frontend/account/directory checks and confirmation of the old Netlify URL redirect. Cloudflare is now authoritative. The temporary import secret was removed without a cleanup warning.
 
-Selected target: [https://goalforge-football1.wuwamconly21.workers.dev](https://goalforge-football1.wuwamconly21.workers.dev), Worker **goalforge-football1**. This replaces the earlier goalforge-football Worker as the migration destination. Netlify remains the source until verified cutover; the prior Cloudflare Worker is not deleted or imported into.
+Selected target: [https://goalforge-football1.wuwamconly21.workers.dev](https://goalforge-football1.wuwamconly21.workers.dev), Worker **goalforge-football1**. This replaces the earlier goalforge-football Worker as the migration destination. Netlify was the source for the verified cutover; the prior Cloudflare Worker was not deleted or imported into.
 
-## One-time owner setup
+## One-time owner setup (completed for this migration)
 
 No Windows launcher or repeat ZIP upload is required. Add provider credentials directly to GitHub; never paste them into chat, issues, commits or workflow inputs.
 
@@ -30,7 +30,7 @@ In Cloudflare: **Workers & Pages → goalforge-football1 → Settings → Builds
 
 If Netlify is also connected to this repository, stop its automatic builds during cutover too; an overlapping Netlify deployment can undo the verified redirect.
 
-## Run
+## Run (first-migration reference; do not rerun against the live instance)
 
 Open [GoalForge full migration](https://github.com/wuwamconly21-del/goalforge-football/actions/workflows/full-migration.yml), select **Run workflow**, branch **main**, action **preflight**. This checks both provider credentials, the source admin record and the closed target without freezing Netlify or deploying anything.
 

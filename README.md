@@ -1,16 +1,16 @@
 # GoalForge — Football Universe
 
-> Source upload complete: the application folders are present on main. All application checks, production build and Cloudflare dry-run compilation passed for source commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Production Cloudflare migration and deployment are not complete.
+> Full data migration completed on 21 October 2026 (Malaysia). All record checksums, revisions and inventories were verified; the Cloudflare application and Netlify redirect checks passed. [Successful migration run](https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781).
 
 See [three-role access design](docs/ROLES-AND-PERMISSIONS.md) and [product, monetization and deployment status](docs/PRODUCT-AND-DEPLOYMENT.md). GitHub Actions verifies source structure, tests and builds before deployment. Passing these checks does not mean the features are already deployed live.
 
 Original 2D football tournament simulator, with a public match broadcast and private organizer controls. Built for Netlify using React, Vite, a Netlify Function and Netlify Blobs. This is a separate project from the hockey simulator.
 
-Live source: https://goalforge-football-live.netlify.app
+Live: https://goalforge-football1.wuwamconly21.workers.dev
 
-Selected Cloudflare migration target: https://goalforge-football1.wuwamconly21.workers.dev (pending verified cutover).
+The former Netlify public URL redirects here. Its original records are retained and its write guard stays locked.
 
-For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. The Windows launcher remains an optional one-time migration route. Netlify remains authoritative until a verified cutover completes.
+For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. Initial migration is complete; use the normal update route for future deployments. Do not rerun first-migration tools against the live instance.
 
 ## Version 1.4 — broadcast motion
 
@@ -21,7 +21,7 @@ For the requested full migration preserving existing data, use [the GitHub migra
 - Animation adapts to canvas size and respects reduced-motion preferences. A 60 FPS drawing target is used on normal devices; actual frame rate depends on the device. No full browser visual/performance verification was possible in the current environment.
 - `npm run test:presentation` checks 120 seeded games, continuity at every ball keyframe, player motion, VAR verdict matching, unchanged results and all five language dictionaries. GitHub Actions runs it before deployment.
 
-The dedicated GitHub repository now contains the application source folders. The v1.4 checks and build have passed. Initial Cloudflare data migration and production deployment are still required; the live deployment has not been changed by uploading source.
+The complete v1.4 application is now deployed on Cloudflare with its existing Netlify records. Admin and manager accounts are preserved; users sign in again on the new hostname. Viewers can open the public URL without an account.
 
 ## Bahasa Melayu
 
@@ -63,7 +63,7 @@ npm run build
 
 `npm run dev` previews the frontend; use the official Netlify CLI's `netlify dev` for the full `/api/*` backend and Blobs integration. The included test suite uses a disposable in-memory store and never creates public competitions.
 
-## Netlify deployment
+## Original Netlify deployment reference
 
 Deploy this directory as a new Netlify project. `netlify.toml` supplies the publish directory, Function bundle and API rewrites. The Function uses the `goalforge-football` Blobs store in this project. The original hockey project is not required.
 
@@ -108,7 +108,7 @@ All interface copy, weather/scheduling controls, template titles, table headings
 - Listing or trading locks manual roster creation for the affected clubs, including later seasons, to preserve the economy. Clubs can still adjust tactics and starting XI between matches. Budgets persist; unbought scout stock refreshes only when admin starts the next season.
 - Admin: Stadium & partners → Transfer market opens/closes the window. Closed windows permit cancellation and lineup swaps. Transfers affect future frozen kickoff squads; old results and archives remain fixed.
 - New kickoffs use engine 3 to avoid offside goal reviews on penalties; old active/completed fixtures retain their original engine.
-- See `CLOUDFLARE-MIGRATION.md` for an architecture and cutover plan. Cloudflare has not been provisioned or deployed.
+- See `CLOUDFLARE-MIGRATION.md` for an architecture and cutover plan. The verified Cloudflare cutover is complete; see FULL-MIGRATION.md for evidence and recovery notes.
 
 
 ### Multiple administrators
@@ -120,4 +120,4 @@ The original password administrator remains the protected owner. After signing i
 
 Workers API and SQLite-backed Durable Objects are in `cloudflare/`. Alarms start due fixtures without viewers; a Cron sweep provides recovery. The import-only deployment starts closed, verifies exact record checksums and refuses conflicting overwrites. The live entry point has no import route. Accounts, extra admins, transfers and historical results keep their existing data format.
 
-Run `npm run test:cloudflare` and `npm run cloudflare:check`. Account authorization and a verified private export/import are required before production cutover. The default `wrangler.jsonc` intentionally remains in import mode until cutover. See `CLOUDFLARE-MIGRATION.md`. Use `migration/package-source.py` to create source packages; never include `.migration-private`, `.wrangler`, provider credentials, exports or runtime databases.
+Run `npm run test:cloudflare` and `npm run cloudflare:check`. Account authorization and a verified private export/import are required before production cutover. The committed `wrangler.jsonc` now targets the verified live Worker. The private import entry point is no longer deployed. See `CLOUDFLARE-MIGRATION.md`. Use `migration/package-source.py` to create source packages; never include `.migration-private`, `.wrangler`, provider credentials, exports or runtime databases.

@@ -17,7 +17,7 @@ const {ready,state,exitCode}=workerReadiness(results);
 const report={target:origin,ready,state,repositoryEntry:config.main,repositoryMode:config.vars?.MIGRATION_MODE||null,results};
 console.log('GOALFORGE_HEALTH_REPORT '+JSON.stringify(report));
 if(process.env.GITHUB_STEP_SUMMARY){
-  const lines=['# GoalForge public Worker health','', 'State: **'+state+'**', '', 'Application ready: **'+(ready?'yes':'no')+'**','', '| Endpoint | HTTP status |','| --- | --- |',...results.map(r=>'| '+r.path+' | '+(r.status??r.networkError)+' |'),'','This check uses public GET requests only. A completed check does not migrate data or authorize Cloudflare.',''];
+  const lines=['# GoalForge public Worker health','', 'Target: '+origin, '', 'State: **'+state+'**', '', 'Application ready: **'+(ready?'yes':'no')+'**','', '| Endpoint | HTTP status |','| --- | --- |',...results.map(r=>'| '+r.path+' | '+(r.status??r.networkError)+' |'),'','This check uses public GET requests only. A completed check does not migrate data or authorize Cloudflare.',''];
   await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n'));
 }
 if(state==='migration-pending')console.log('::notice::Worker is intentionally closed while migration verification is pending. The viewer application is NOT live. Production deployment guards remain unchanged.');

@@ -2,7 +2,7 @@
 
 Repository: https://github.com/wuwamconly21-del/goalforge-football
 
-Current state: GitHub access is connected and the full source upload is complete. The app, components, lib, netlify, cloudflare, migration and tests folders are present. Source checks, all test suites, production build and Cloudflare compilation passed for commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Production migration has not yet been performed.
+Current state: full migration completed on 21 October 2026 (Malaysia). The verified live application is https://goalforge-football1.wuwamconly21.workers.dev. The original Netlify public URL redirects to it. All source records were checksum/revision/inventory verified. [Migration evidence](https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781).
 
 ## Full migration without a Windows launcher
 
@@ -23,7 +23,7 @@ Cloudflare Workers Builds can connect directly to this repository through the of
 Official instructions:
 https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/
 
-Before connecting a production auto-deploy branch, complete the first migration and commit the exact verified live Worker configuration. The current wrangler.jsonc intentionally targets the closed migration-worker entry point with MIGRATION_MODE=import; this is not a public viewer application.
+The first migration has completed and the verified live Worker configuration is committed. The current wrangler.jsonc targets cloudflare/worker.ts with MIGRATION_MODE=live and name goalforge-football1. Preserve this configuration for future updates; do not redeploy the import-only entry point.
 
 ## Alternative: GitHub Actions deployment
 

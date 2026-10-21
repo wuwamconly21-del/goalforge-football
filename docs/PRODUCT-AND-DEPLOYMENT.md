@@ -30,10 +30,10 @@ Dokumentasi rasmi:
 - https://developers.cloudflare.com/workers/ci-cd/external-cicd/github-actions/
 - https://developers.cloudflare.com/workers/platform/pricing/
 
-## Sekatan semasa yang telah disahkan
+## Status deployment yang telah disahkan
 
-Kemas kini 21 Oktober 2026 (Malaysia): semua folder sumber utama sudah dimuat naik. Semakan struktur, semua suite ujian, build production dan kompilasi Cloudflare dry-run berjaya pada commit 107fe845b1f65220b5a74881c4b29fe50e233a49. Kejayaan build ini tidak bermaksud migrasi data atau deployment production telah selesai.
+Migrasi penuh selesai pada 21 Oktober 2026, 09:07 waktu Malaysia. Aplikasi live: https://goalforge-football1.wuwamconly21.workers.dev. [Run migrasi berjaya](https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781) mengesahkan dua snapshot sumber yang sepadan, checksum/revision semua rekod, inventori akaun dan pertandingan, halaman aplikasi, konfigurasi admin dan redirect Netlify.
 
-wrangler.jsonc masih menggunakan cloudflare/migration-worker.ts dan MIGRATION_MODE=import. Ini ialah mod import tertutup, bukan laman penonton. Jangan menukar kepada live sebelum eksport/import data dan verifikasi selesai. Binding D1 yang sudah ditambah dalam konfigurasi dikekalkan; menambah binding sahaja tidak memindahkan data dari Netlify atau menukar backend Durable Objects kepada D1.
+wrangler.jsonc kini menggunakan cloudflare/worker.ts, MIGRATION_MODE=live dan nama goalforge-football1. Import tertutup sudah digantikan dengan aplikasi live. Rekod asal Netlify dikekalkan dan sumber itu kekal dikunci. Akaun sedia ada dipindahkan; pengguna perlu login semula pada hostname baharu.
 
-Migrasi awal dan deployment biasa ialah dua proses berbeza. Netlify mesti kekal sebagai sumber aktif sehingga salinan Cloudflare telah disahkan. Tiada source freeze, pertukaran domain atau caj pelan dibuat oleh perubahan dokumentasi/CI ini.
+Binding D1 pengguna dikekalkan; backend aplikasi menggunakan SQLite-backed Durable Objects. Tiada checkout atau caj pelan baharu diaktifkan oleh migrasi ini. Automatic builds dihentikan semasa cutover; pilih satu laluan deployment di atas sebelum mengaktifkan update production automatik.
