@@ -1,4 +1,4 @@
-import React,{createContext,useContext,useEffect,useRef,useState} from 'react';
+import React,{createContext,useContext,useEffect,useRef,useState,useCallback} from 'react';
 import {StadiumAudio} from '../../lib/stadium-audio';
 import {AudioDirector,audioCatalog} from '../../lib/audio-director';
 import {musicCue} from '../../lib/broadcast';
@@ -19,7 +19,8 @@ export function BroadcastAudioProvider({s,f,m,now,children}:any){const {t}=useLo
  const toggle=async()=>{setError(false);if(engine.current){director.current?.close();director.current=null;await engine.current.close();engine.current=null;setEnabled(false);return}try{const a=new StadiumAudio();engine.current=a;const bus=a.ctx.createGain();bus.gain.value=volume;bus.connect(a.ctx.destination);director.current=new AudioDirector(a.ctx,bus,()=>setError(true));await a.enable();setEnabled(true);apply()}catch{director.current?.close();engine.current?.close();engine.current=null;director.current=null;setEnabled(false);setError(true)}};
  const slider=(name:string,value:number,set:(v:number)=>void)=><label><span>{t(name)}</span><input type="range" min="0" max="100" value={Math.round(value*100)} aria-label={t(name)} onChange={e=>{const v=Number(e.target.value)/100;set(v);try{localStorage.setItem('goalforge-'+name,v.toString())}catch{}if(name==='volume'){director.current?.volume(v)}}}/></label>;
  const cue=musicCue(s,m,now),controls=<div className="global-audio sound-controls"><Button icon="sound" variant={enabled?'sound-on':'ghost'} onClick={toggle} aria-pressed={enabled}>{t(enabled?'soundOn':'enableSound')}</Button><details><summary>{t('audioMix')}</summary><div className="audio-mix">{slider('volume',volume,setVolume)}{slider('music',music,setMusic)}{slider('effects',effects,setEffects)}</div></details><span className="sound-note" role={error?'status':undefined}>{error?t('audioLoadError'):enabled&&cue.track?(audioCatalog as any)[cue.track].title:t('soundHint')}</span></div>;
- return <SoundContext.Provider value={{controls,kick:()=>{if(enabled&&!document.hidden)engine.current?.kick()}}}>{children}</SoundContext.Provider>;
+ const kick=useCallback(()=>{if(engine.current&&!document.hidden)engine.current.kick()},[]);
+ return <SoundContext.Provider value={{controls,kick}}>{children}</SoundContext.Provider>;
 }
 export function GlobalAudioControls(){return useContext(SoundContext).controls}
 export function useStadiumSound(_s?:any,_f?:any,_m?:any){return {controls:null,kick:useContext(SoundContext).kick}}

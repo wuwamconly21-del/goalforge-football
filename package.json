@@ -1,6 +1,6 @@
 {
   "name": "goalforge-football",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,13 +9,13 @@
   "scripts": {
     "build": "vite build --config vite.netlify.config.mjs",
     "dev": "vite --config vite.netlify.config.mjs",
-    "test": "node tests/football.test.mjs && node tests/security.test.mjs && node tests/manager.test.mjs && node tests/scheduling-weather.test.mjs && node tests/market.test.mjs && node tests/admins.test.mjs && node tests/admin-delegation.test.mjs && node tests/shootout-rules.test.mjs && node tests/legacy-results.test.mjs && node tests/broadcast.test.mjs && node tests/audio.test.mjs",
+    "test": "node tests/football.test.mjs && node tests/security.test.mjs && node tests/manager.test.mjs && node tests/scheduling-weather.test.mjs && node tests/market.test.mjs && node tests/admins.test.mjs && node tests/admin-delegation.test.mjs && node tests/shootout-rules.test.mjs && node tests/legacy-results.test.mjs && node tests/broadcast.test.mjs && node tests/audio.test.mjs && node tests/tournament-system.test.mjs",
     "test:cloudflare": "node tests/cloudflare-store.test.mjs && node tests/cloudflare-runtime.test.mjs && node tests/cloudflare-import.test.mjs",
     "cloudflare:check": "wrangler deploy --dry-run --outdir cloudflare-build",
     "cloudflare:dev": "wrangler dev",
     "cloudflare:deploy": "npm run build && wrangler deploy",
     "test:migration": "node tests/migration-launcher.test.mjs",
-    "test:presentation": "node tests/presentation.test.mjs && node tests/rules-ui.test.mjs && node tests/broadcast-ui.test.mjs && node tests/smooth-gameplay.test.mjs && node tests/match-desk-ui.test.mjs && node tests/render-loop.test.mjs"
+    "test:presentation": "node tests/presentation.test.mjs && node tests/rules-ui.test.mjs && node tests/broadcast-ui.test.mjs && node tests/smooth-gameplay.test.mjs && node tests/match-desk-ui.test.mjs && node tests/render-loop.test.mjs && node tests/restarts.test.mjs && node tests/tournament-ui.test.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "11.1.4",

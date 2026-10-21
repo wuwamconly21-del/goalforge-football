@@ -12,7 +12,7 @@ import {scheduledChanges,runSchedules} from '../lib/scheduler';
 import {matchPlaybackDuration} from '../lib/sim';
 
 export function nextWake(s:any,now=Date.now()):number|null{
- if(s.registration?.open||s.champion)return null;
+ if(s.removedAt||s.registration?.open||s.champion)return null;
  const dates=s.fixtures.filter((f:any,index:number)=>!f.done&&f.autoStart&&index!==s.live?.index).map((f:any)=>Date.parse(f.scheduledAt)).filter(Number.isFinite),next=dates.length?Math.min(...dates):null;
  if(s.live){if(!s.live.running)return null;const end=s.live.started+(matchPlaybackDuration(s)-(s.live.autoElapsed||0))*1000+8000;if(s.live.source==='schedule')return Math.max(now+100,end);return next===null?null:Math.max(now+100,end,next)}
  return next===null?null:Math.max(now+100,next);
@@ -41,6 +41,6 @@ export async function apiRequest(request:Request,env:any){
  return Response.json({error:'Not found.'},{status:404});
 }
 export default {
- async fetch(request:Request,env:any){const url=new URL(request.url);try{if(env.MIGRATION_MODE!=='live')return secure(Response.json({error:'GoalForge migration verification is in progress.'},{status:503}),true);if(url.pathname==='/api/health'&&request.method==='GET')return secure(Response.json({application:'GoalForge',version:'1.7.0',mode:'live'}),true);if(url.pathname.startsWith('/api/'))return secure(await apiRequest(request,env),true);return secure(await env.ASSETS.fetch(request))}catch{console.error('GoalForge request failed');return secure(Response.json({error:'Service temporarily unavailable.'},{status:503}),true)}},
+ async fetch(request:Request,env:any){const url=new URL(request.url);try{if(env.MIGRATION_MODE!=='live')return secure(Response.json({error:'GoalForge migration verification is in progress.'},{status:503}),true);if(url.pathname==='/api/health'&&request.method==='GET')return secure(Response.json({application:'GoalForge',version:'1.8.0',mode:'live'}),true);if(url.pathname.startsWith('/api/'))return secure(await apiRequest(request,env),true);return secure(await env.ASSETS.fetch(request))}catch{console.error('GoalForge request failed');return secure(Response.json({error:'Service temporarily unavailable.'},{status:503}),true)}},
  async scheduled(_event:any,env:any,ctx:any){if(env.MIGRATION_MODE==='live')ctx.waitUntil(runSchedules(cloudStore(env.ARENA)))}
 };

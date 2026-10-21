@@ -32,3 +32,16 @@ The renderer retains its canvas session across polling, pause/resume and sponsor
 Injuries keep the pitch visible: two medics enter, assess the player and carry the stretcher off before the existing automatic restart. Half-time now shows first-half statistics, a shot map and a contextual analysis; possession is labelled as an estimate from the seeded movement. No future events enter that panel. Referee cards explain the decision, affected player and restart.
 
 Rain has lower traction and faster ground passes. Snow slows movement and ground passes. Sunny conditions retain the ordinary movement model. These animation paths use the already-frozen match events; previous results are preserved. A physical scoreboard, seating, floodlights and sponsor boards appear in the match stadium, with a corresponding scoreboard in the Stadium tab.
+
+
+## v1.8 — tournaments and restarts
+
+The Bracket tab sits beside Standings. New cup or groups + knockout competitions can use single elimination or double elimination. Admins can change this before the season's first match. Double elimination has an upper bracket, lower bracket, grand final and an additional final only when the unbeaten upper winner loses the grand final. Two losses eliminate a team. Existing seasons retain their current format.
+
+In Match schedule, the multi-day planner distributes upcoming fixtures over 1–30 days using Malaysia time. Three days is the form default, not an automatic schedule. Admins must apply the plan. Later playoff rounds inherit slots when their participants are resolved. Overlapping slots still queue behind the current broadcast and sponsor break. Admins can also edit individual fixtures or start manually. A new season requires its own schedule.
+
+Admins can remove a tournament by typing its name in the competition header dialog. Removal hides its room, banners and chat from public endpoints, disables upcoming automatic starts, clears the scheduling policy and pauses an active match. Removed tournaments remain recoverable through the admin-only list on the home page. Restoring does not restart matches automatically; an interrupted match stays paused. No existing tournament is removed by deployment.
+
+After each confirmed goal the ball returns to the centre and the conceding team takes kick-off. Corners show a taker and delivery into the penalty area. Direct free kicks have a named taker and an eligible defensive wall. These are continuous motion sequences based on the frozen events, not newly invented goals. Movement coefficients are precomputed and shared by the canvas and overlays. UI clock updates are less frequent; chat, timeline and match statistics avoid unchanged renders. The canvas still follows its own animation clock.
+
+The Trophy room shows the current competition trophy and actual champions from completed seasons. It does not award a winner before the championship is complete.

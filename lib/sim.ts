@@ -1,3 +1,4 @@
+import {initializeDouble,advanceDouble} from './playoffs';
 import {broadcastPhase} from './broadcast';
 import {createShootout,equalShootoutPlayers} from './shootout';
 import {weatherInfo} from './weather';
@@ -90,9 +91,10 @@ export function matchClock(s:any,now=Date.now()):any{
 }
 export function table(s:any,group?:string){const ids=group?[...new Set(s.fixtures.filter((f:any)=>f.group===group).flatMap((f:any)=>[f.home,f.away]))]:s.teams.map((t:any)=>t.id),list=s.teams.filter((t:any)=>ids.includes(t.id)).map((t:any)=>({...t,p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0}));for(const f of s.fixtures){if(!f.done||f.knockout||group&&f.group!==group)continue;const v=score(s,f);for(let side=0;side<2;side++){const t=list.find((t:any)=>t.id===(side?f.away:f.home));if(!t)continue;t.p++;t.gf+=v[side];t.ga+=v[1-side];if(v[side]>v[1-side]){t.w++;t.pts+=3}else if(v[side]===v[1-side]){t.d++;t.pts++}else t.l++}}return list.sort((a:any,b:any)=>b.pts-a.pts||(b.gf-b.ga)-(a.gf-a.ga)||b.gf-a.gf||a.name.localeCompare(b.name))}
 export function advance(s:any){if(!s.fixtures.every((f:any)=>f.done)||s.format==='league')return;
+ if(s.playoff?.type==='double'){advanceDouble(s);return}
  const knock=s.fixtures.filter((f:any)=>f.knockout);
  if(!knock.length&&s.format==='groups'){
-  const groups=[...new Set(s.fixtures.map((f:any)=>f.group))].sort(),qualified=groups.map((g:any)=>table(s,g).slice(0,2));let pairs:any[]=[];for(let i=0;i<qualified.length;i+=2)pairs.push(qualified[i][0],qualified[i+1][1],qualified[i+1][0],qualified[i][1]);s.fixtures.push(...cupFixtures(pairs,s.mode,1));return;
+  const groups=[...new Set(s.fixtures.map((f:any)=>f.group))].sort(),qualified=groups.map((g:any)=>table(s,g).slice(0,2));let pairs:any[]=[];for(let i=0;i<qualified.length;i+=2)pairs.push(qualified[i][0],qualified[i+1][1],qualified[i+1][0],qualified[i][1]);const start=s.fixtures.length;s.fixtures.push(...cupFixtures(pairs,s.mode,1));initializeDouble(s,start);return;
  }
  const round=Math.max(...knock.map((f:any)=>f.round)),last=knock.filter((f:any)=>f.round===round);if(last.length===1){s.champion=winner(s,last[0]);return}const winners=last.map((f:any)=>s.teams.find((t:any)=>t.id===winner(s,f)));s.fixtures.push(...cupFixtures(winners,s.mode,round+1));
 }

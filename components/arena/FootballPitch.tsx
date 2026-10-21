@@ -6,14 +6,14 @@ import {matchWeather,weatherPresentation,surfacePhysics} from '../../lib/weather
 import {motionKey,medicalScene,decisionFor,RenderBudget,clamp} from '../../lib/presentation';
 import {ground,paintGround,playerSprite} from '../../lib/pitch-renderer';
 import {useLocale,minute} from '../../lib/i18n';
-export default function FootballPitch({state:s,fixture:f,offset=0,clock:m,onKick}:{state:any,fixture:any,offset?:number,clock:any,onKick?:()=>void}){
- const {t,lang}=useLocale(),ref=useRef<HTMLCanvasElement>(null),latest=useRef({s,f,m,offset,onKick,t,lang}),sessions=useRef(0);latest.current={s,f,m,offset,onKick,t,lang};
+function FootballPitch({state:s,fixture:f,offset=0,clock:m,onKick}:{state:any,fixture:any,offset?:number,clock:any,onKick?:()=>void,scoreKey?:string}){
+ const {t,lang}=useLocale(),ref=useRef<HTMLCanvasElement>(null),latest=useRef({s,f,m,offset,onKick,t,lang}),sessions=useRef(0),renders=useRef(0);renders.current++;latest.current={s,f,m,offset,onKick,t,lang};
  const key=useMemo(()=>motionKey(s,f),[s,f]),prepared=useMemo(()=>{const ev=events(s,f),teams=footballTeams(s,f),weather=matchWeather(s,f);return {ev,teams,weather,plan:makePlan(ev,f.seed,teams,weather),conditions:weatherPresentation(s,f),physics:surfacePhysics(weather),formations:teams.map((v:any)=>formationPoints(tactics(v.tactics).formation))}},[key]);
  useEffect(()=>{
   const canvas=ref.current;if(!canvas)return;const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)return;const {ev,teams,weather,plan,conditions,physics,formations}=prepared,{w,h,left,top,pw,ph}=ground,x=(v:number)=>left+v*pw,y=(v:number)=>top+v*ph;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches,budget=new RenderBudget(),background=document.createElement('canvas'),bg=background.getContext('2d',{alpha:false})!,sprites=teams.flatMap((team:any,side:number)=>Array.from({length:11},(_,i)=>playerSprite(i===0?(side?'#a78bfa':'#f4bf54'):team.color,String(i+1)))),refSprite=playerSprite('#f1e64d','R'),medicSprite=playerSprite('#e7f3ee','+');
   const logos=teams.map((team:any)=>{if(!team.logo)return null;const img=new Image();img.src=team.logo;return img});
-  let alive=true,frame=0,lastDraw=0,previousStamp=0,rafAverage=16.67,width=canvas.clientWidth,ratio=0,dirty=true,baseKey='',lastCarrier=-2,lastSide=-1,lastKickAt=-Infinity,lineupTime=-1,current=lineupAt(s,f,0),previousPlayers:any[]=[],previousBall:any=null,smoothOffset=offset,measuredAt=0,draws=0,costSum=0;
+  let alive=true,frame=0,lastDraw=0,previousStamp=0,rafAverage=16.67,width=canvas.clientWidth,ratio=0,dirty=true,baseKey='',decorState:any=null,decorLocale='',cosmetic='',lastCarrier=-2,lastSide=-1,lastKickAt=-Infinity,lineupTime=-1,current=lineupAt(s,f,0),previousPlayers:any[]=[],previousBall:any=null,smoothOffset=offset,measuredAt=0,draws=0,costSum=0;
   const anchorWall=Date.now(),anchorStamp=performance.now();canvas.dataset.renderSession=String(++sessions.current);
   const resize=new ResizeObserver(entries=>{width=entries[0].contentRect.width;dirty=true});resize.observe(canvas);
   function player(px:number,py:number,index:number,active=false,angle=0,speed=0,tackling=false,sprite?:HTMLCanvasElement){if(active){ctx!.strokeStyle='#b6ffe5';ctx!.lineWidth=1.5;ctx!.beginPath();ctx!.arc(px,py,14,0,Math.PI*2);ctx!.stroke()}ctx!.save();ctx!.translate(px,py);ctx!.rotate(angle);const stride=reduced?0:Math.sin((lastDraw-anchorStamp)/1000*physics.stride+index)*Math.min(3,speed*.04);ctx!.strokeStyle='#d5e7df';ctx!.lineWidth=2.7;ctx!.lineCap='round';ctx!.beginPath();ctx!.moveTo(-1,-5);ctx!.lineTo(6+stride,-5);ctx!.moveTo(-1,5);ctx!.lineTo(tackling?17:6-stride,tackling?8:5);ctx!.stroke();ctx!.restore();ctx!.drawImage(sprite||sprites[index],px-20,py-20,40,44)}
@@ -22,7 +22,7 @@ export default function FootballPitch({state:s,fixture:f,offset=0,clock:m,onKick
    if(lastDraw&&(reduced?elapsed<32:rafAverage<11&&elapsed<15))return;
    const began=performance.now(),delta=Math.max(.008,Math.min(.1,elapsed/1000));lastDraw=stamp;const {s:state,f:fixture,m:display,offset:targetOffset,onKick,t:translate,lang:locale}=latest.current;
    smoothOffset+=Math.max(-1,Math.min(1,targetOffset-smoothOffset));const wall=anchorWall+stamp-anchorStamp+smoothOffset,clock=state.live?matchClock(state,wall):display,time=clock.time||0,scene=samplePlan(plan,time),swapped=(time>=90&&time<180)||(time>=210&&time<240),sx=(v:number)=>x(swapped?1-v:v);
-   const nextRatio=Math.min(budget.lite?1:1.65,Math.max(.4,width/w*(window.devicePixelRatio||1))),cosmetic=JSON.stringify([state.stadium,state.sponsors?.map((v:any)=>[v.brand,v.placement]),locale]);
+   const nextRatio=Math.min(budget.lite?1:1.65,Math.max(.4,width/w*(window.devicePixelRatio||1)));if(decorState!==state||decorLocale!==locale){decorState=state;decorLocale=locale;cosmetic=JSON.stringify([state.stadium,state.sponsors?.map((v:any)=>[v.brand,v.placement]),locale])}
    if(dirty||ratio!==nextRatio||baseKey!==cosmetic){ratio=nextRatio;baseKey=cosmetic;canvas.width=Math.max(1,Math.round(w*ratio));canvas.height=Math.max(1,Math.round(h*ratio));background.width=canvas.width;background.height=canvas.height;bg.setTransform(ratio,0,0,ratio,0,0);paintGround(bg,state,weather,translate('universe'));dirty=false}
    ctx.setTransform(ratio,0,0,ratio,0,0);ctx.drawImage(background,0,0,w,h);
    if(Math.abs(time-lineupTime)>.12||time<lineupTime){current=lineupAt(state,fixture,time);lineupTime=time}const absent=new Set(current.absent),intro=['prematch','entrance','lineup','countdown'].includes(clock.status),shooting=['penalties','shootout'].includes(clock.status),medical=clock.status==='injury'&&clock.stop?medicalScene(plan,clock.stop,4-(clock.autoResumeIn||0)):null;
@@ -49,5 +49,7 @@ export default function FootballPitch({state:s,fixture:f,offset=0,clock:m,onKick
   const visibility=()=>{previousStamp=0;previousPlayers=[];previousBall=null;lastCarrier=-2;lastKickAt=-Infinity;};document.addEventListener('visibilitychange',visibility);frame=requestAnimationFrame(draw);
   return()=>{alive=false;cancelAnimationFrame(frame);resize.disconnect();document.removeEventListener('visibilitychange',visibility)};
  },[prepared]);
- return <canvas ref={ref} className="football-canvas" data-weather={matchWeather(s,f)} data-phase={m.status} data-presentation="fluid-v3" role="img" aria-label={`${t('arena')}: ${footballTeams(s,f).map((v:any)=>v.name).join(' – ')} · ${score(s,f,m.time).join(' – ')}`}/>;
+ return <canvas ref={ref} className="football-canvas" data-weather={matchWeather(s,f)} data-phase={m.status} data-presentation="fluid-v4" data-react-renders={renders.current} role="img" aria-label={`${t('arena')}: ${footballTeams(s,f).map((v:any)=>v.name).join(' – ')} · ${score(s,f,m.time).join(' – ')}`}/>;
 }
+
+export default React.memo(FootballPitch,(a,b)=>a.state===b.state&&a.fixture===b.fixture&&a.offset===b.offset&&a.onKick===b.onKick&&a.clock.status===b.clock.status&&a.scoreKey===b.scoreKey);
