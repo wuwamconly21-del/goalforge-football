@@ -1,3 +1,4 @@
+import {nextTransitionAt} from '../lib/match-flow';
 import {publicArticle} from '../lib/public-article';
 import {createMonetizationHandler,monetizationConfig,adsTxt} from '../lib/monetization-server';
 import {DurableObject} from 'cloudflare:workers';
@@ -11,14 +12,9 @@ import {createManagerHandler} from '../lib/manager-server';
 import {createCommunityHandler} from '../lib/community-server';
 import {createBannerHandler} from '../lib/banner-server';
 import {scheduledChanges,runSchedules} from '../lib/scheduler';
-import {matchPlaybackDuration} from '../lib/sim';
 
-export function nextWake(s:any,now=Date.now()):number|null{
- if(s.removedAt||s.registration?.open||s.champion)return null;
- const dates=s.fixtures.filter((f:any,index:number)=>!f.done&&f.autoStart&&index!==s.live?.index).map((f:any)=>Date.parse(f.scheduledAt)).filter(Number.isFinite),next=dates.length?Math.min(...dates):null;
- if(s.live){if(!s.live.running)return null;const end=s.live.started+(matchPlaybackDuration(s)-(s.live.autoElapsed||0))*1000+8000;if(s.live.source==='schedule')return Math.max(now+100,end);return next===null?null:Math.max(now+100,end,next)}
- return next===null?null:Math.max(now+100,next);
-}
+export function nextWake(s:any,now=Date.now()):number|null{return nextTransitionAt(s,now)}
+
 export class ArenaRecords extends DurableObject {
  private records:SqlRecords;
  constructor(ctx:any,env:any){super(ctx,env);this.records=new SqlRecords(ctx.storage)}
@@ -44,6 +40,6 @@ export async function apiRequest(request:Request,env:any){
  return Response.json({error:'Not found.'},{status:404});
 }
 export default {
- async fetch(request:Request,env:any){const url=new URL(request.url);try{if(env.MIGRATION_MODE!=='live')return secure(Response.json({error:'GoalForge migration verification is in progress.'},{status:503}),true);if(url.pathname==='/api/health'&&request.method==='GET')return secure(Response.json({application:'GoalForge',version:'1.10.0',mode:'live'}),true);if(url.pathname==='/news/'&&request.method==='GET')return secure(await publicArticle(cloudStore(env.ARENA),url,(request as any).cf?.country||''));if(url.pathname==='/ads.txt'&&request.method==='GET'){const {config}=await monetizationConfig(cloudStore(env.ARENA));return secure(new Response(adsTxt(config),{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}}))}if(url.pathname.startsWith('/api/'))return secure(await apiRequest(request,env),true);const asset=await env.ASSETS.fetch(request);if(asset.headers.get('content-type')?.includes('text/html')){const {config}=await monetizationConfig(cloudStore(env.ARENA));if(/^ca-pub-\d{16}$/.test(config.publisherId))return secure(new HTMLRewriter().on('head',{element(e:any){e.append(`<meta name="google-adsense-account" content="${config.publisherId}">`,{html:true})}}).transform(asset))}return secure(asset)}catch{console.error('GoalForge request failed');return secure(Response.json({error:'Service temporarily unavailable.'},{status:503}),true)}},
+ async fetch(request:Request,env:any){const url=new URL(request.url);try{if(env.MIGRATION_MODE!=='live')return secure(Response.json({error:'GoalForge migration verification is in progress.'},{status:503}),true);if(url.pathname==='/api/health'&&request.method==='GET')return secure(Response.json({application:'GoalForge',version:'1.11.0',mode:'live'}),true);if(url.pathname==='/news/'&&request.method==='GET')return secure(await publicArticle(cloudStore(env.ARENA),url,(request as any).cf?.country||''));if(url.pathname==='/ads.txt'&&request.method==='GET'){const {config}=await monetizationConfig(cloudStore(env.ARENA));return secure(new Response(adsTxt(config),{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'no-store'}}))}if(url.pathname.startsWith('/api/'))return secure(await apiRequest(request,env),true);const asset=await env.ASSETS.fetch(request);if(asset.headers.get('content-type')?.includes('text/html')){const {config}=await monetizationConfig(cloudStore(env.ARENA));if(/^ca-pub-\d{16}$/.test(config.publisherId))return secure(new HTMLRewriter().on('head',{element(e:any){e.append(`<meta name="google-adsense-account" content="${config.publisherId}">`,{html:true})}}).transform(asset))}return secure(asset)}catch{console.error('GoalForge request failed');return secure(Response.json({error:'Service temporarily unavailable.'},{status:503}),true)}},
  async scheduled(_event:any,env:any,ctx:any){if(env.MIGRATION_MODE==='live')ctx.waitUntil(runSchedules(cloudStore(env.ARENA)))}
 };

@@ -32,3 +32,13 @@ Official implementation references:
 - https://support.google.com/adsense/answer/7670013
 
 Tests cover role boundaries, revision conflicts, atomic season validation, incomplete archives, fresh opening timings, manual/new scheduling, ad ID validation, ownership meta tags/ads.txt, escaped editorial HTML, no ad requests before consent, decline/withdrawal, and trusted geography. Cloudflare runtime tests execute real workerd/SQLite/HTMLRewriter. No production seasons or ad accounts are changed by these tests.
+
+## v1.11: season form, automatic matches, and 32 teams
+
+New manager registrations default to a 32-team capacity and a 16-team minimum. Admins can close registration with any count from 16 through 32; filling every place is optional. Existing small sample events keep their entry rules. Admins can increase an older registration’s capacity in its registration panel. Single elimination uses real play-in games and explicit byes. Groups distribute teams evenly into groups of three or four and qualify two from each group. Double elimination preserves the two-loss rule for every eliminated qualifier, with a final reset if needed. A bye never produces a fake fixture or score.
+
+Automatic progression is on for new competitions. When registration is closed, an unscheduled opening starts after a shared 16-second deadline; full-time results confirm after 16 seconds. The opening, lineups and sponsor break still run before gameplay. Explicit future schedules retain their dates. Admins can act early, pause a running match, or disable automatic progression. The server persists deadlines and Cloudflare Durable Object alarms run without viewers. Legacy competitions adopt this setting when an authenticated admin opens that room, rather than advancing old rooms merely because a viewer visits. A new season always requires an admin action.
+
+Season Control displays field errors beside Apply and uses an explicit acknowledgment checkbox. The tournament name is supplied from the selected competition after acknowledgment. A hidden old capacity cannot reject a closed-registration season. Opening the editor temporarily holds automatic progression for up to five minutes so a result confirmation does not invalidate the form revision. Closing releases that editor’s hold. A completed pending match is confirmed before archiving, preserving its result. Changes use authenticated, revision-checked atomic updates.
+
+Validation covers every team count from 16 to 32 in single and double elimination and group qualification, manager quota boundaries, exact 16-second deadlines, concurrent viewers, all five languages, and real Cloudflare workerd/SQLite alarms without viewer requests.

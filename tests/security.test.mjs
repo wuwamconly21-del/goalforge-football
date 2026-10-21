@@ -8,13 +8,13 @@ try{
   const path='https://arena.test/api/'+service+query,request=new Request(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',cookie:Object.entries(jar).map(([k,v])=>k+'='+v).join(';')},...(body?{body:JSON.stringify(body)}:{})});let identity=await resolveSession(request,db),options={identity,passwordOnly:true};let handler=service==='account'?createPasswordAccountHandler(db,{setupHash,clientIp:ip}):service==='arena'?createArenaHandler(db,options):service==='community'?createCommunityHandler(db,options):createBannerHandler(db);
   let response=await handler(request);for(let cookie of response.headers.getSetCookie()){let first=cookie.split(';')[0],i=first.indexOf('=');jar[first.slice(0,i)]=first.slice(i+1);assert(cookie.includes('HttpOnly')&&cookie.includes('Secure')&&cookie.includes('SameSite=Lax'))}if(service==='banner')return response;return {status:response.status,...await response.json()};
  }
- let g=await call('account');assert(g.guest&&!g.authenticated&&!g.organizer);assert(g.user);assert.equal((await call('arena',{action:'create',name:'Nope'})).status,403);
+ let g=await call('account');assert(g.guest&&!g.authenticated&&!g.organizer);assert(g.user);assert.equal((await call('arena',{action:'create',autoFlow:false,name:'Nope'})).status,403);
  assert.equal((await call('account',{action:'setupPassword',setupKey:'wrong',username:'host',password:'Correct-password-123'},adminJar)).status,403);
  let setup=await call('account',{action:'setupPassword',setupKey:'setup-test-only',username:'NelyxAdmin',password:'Correct-password-123'},adminJar);assert.equal(setup.status,200);let config=JSON.parse(rows.get('__password_admin').data);assert.equal(config.username,'nelyxadmin');assert(config.hash&&!JSON.stringify(config).includes('Correct-password-123'));
  assert.equal((await call('account',{action:'setupPassword',setupKey:'setup-test-only',username:'evil',password:'Correct-password-123'},guestJar)).status,403);
  assert.equal((await call('account',{action:'login',username:'nelyxadmin',password:'wrong'},guestJar)).status,401);
- let spoof=await call('arena',{action:'create',name:'Spoof',identity:{isAdmin:true},organizer:true},guestJar);assert.equal(spoof.status,403);
- let created=await call('arena',{action:'create',name:'My Manual Cup',preset:'my'},adminJar),room=created.room,rev=created.revision;assert.equal(created.status,200);assert(!created.token);assert.equal(created.state.live,null);
+ let spoof=await call('arena',{action:'create',autoFlow:false,name:'Spoof',identity:{isAdmin:true},organizer:true},guestJar);assert.equal(spoof.status,403);
+ let created=await call('arena',{action:'create',autoFlow:false,name:'My Manual Cup',preset:'my'},adminJar),room=created.room,rev=created.revision;assert.equal(created.status,200);assert(!created.token);assert.equal(created.state.live,null);
  assert.equal((await call('arena',{action:'start',room,revision:rev},guestJar)).status,403);
  assert.equal((await call('account',{action:'profile',name:'Tetamu Ali'},guestJar)).status,200);let msg=await call('community',{action:'message',room,text:'Saya boleh chat tanpa login.'},guestJar);assert.equal(msg.status,200);assert.equal(msg.messages[0].name,'Tetamu Ali');assert(!msg.messages[0].organizer);
  assert.equal((await call('community',{action:'toggleChat',room,enabled:false},guestJar)).status,403);

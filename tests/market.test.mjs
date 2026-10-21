@@ -6,7 +6,7 @@ const raw=async(body,identity=admin)=>{const r=await createArenaHandler(db,{iden
 let room;
 const manager=async(i,body)=>{const r=await createManagerHandler(db,{identity:identities[i]})(new Request('https://goal.test/api/manager'+(!body?'?room='+room:''),{method:body?'POST':'GET',...(body?{body:JSON.stringify({room,...body})}:{})}));return {status:r.status,...await r.json()}};
 try{
- let d=await raw({action:'create',preset:'custom',entry:'manager',name:'Transfer test',teamLimit:4,mode:'rating'});room=d.room;let rev=d.revision;
+ let d=await raw({action:'create',autoFlow:false,preset:'custom',entry:'manager',name:'Transfer test',teamLimit:4,mode:'rating'});room=d.room;let rev=d.revision;
  for(let i=0;i<3;i++){d=await manager(i,{action:'registerTeam',revision:rev,team:presetTeams('custom')[i]});assert.equal(d.status,200);rev=d.revision}
  let a=await manager(0),b=await manager(1),c=await manager(2);const aid=a.team.id,bid=b.team.id;
  assert.equal(a.market.balance,STARTING_BUDGET);assert.equal(a.market.agents.length,12);assert.equal(a.team.reserves.length,0);

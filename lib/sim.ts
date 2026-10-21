@@ -11,10 +11,10 @@ export function fixtures(teams:any[],season=1,mode='open'){
  const rand=random(seed());let ring=teams.map(t=>t.id);for(let i=ring.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[ring[i],ring[j]]=[ring[j],ring[i]]}if(ring.length%2)ring.push(null);
  const result:any[]=[];for(let round=0;round<ring.length-1;round++){for(let i=0;i<ring.length/2;i++){const a=ring[i],b=ring.at(-1-i);if(a!==null&&b!==null)result.push({home:(round+i)%2?a:b,away:(round+i)%2?b:a,round:round+1,seed:Math.floor(rand()*4294967295),engine:2,weatherModel:1,mode,done:false})}ring.splice(1,0,ring.pop())}return result;
 }
-export function cupFixtures(teams:any[],mode='open',round=1){const out:any[]=[];for(let i=0;i<teams.length;i+=2)out.push({home:teams[i].id,away:teams[i+1].id,seed:seed(),engine:2,weatherModel:1,mode,knockout:true,stage:'knockout',round,done:false});return out}
+export function cupFixtures(teams:any[],mode='open',round=1){const out:any[]=[];if(teams.length<2)return out;const power=2**Math.floor(Math.log2(teams.length)),games=teams.length===power?teams.length/2:teams.length-power;let entries=teams;if(teams.length!==power){entries=[...teams];const r=random(seed());for(let i=entries.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[entries[i],entries[j]]=[entries[j],entries[i]]}}for(let i=0;i<games*2;i+=2)out.push({home:entries[i].id,away:entries[i+1].id,seed:seed(),engine:2,weatherModel:1,mode,knockout:true,stage:'knockout',round,done:false});if(games*2<entries.length)out[0].byeQualifiers=entries.slice(games*2).map(t=>t.id);return out}
 export function buildCompetition(teams:any[],format:string,mode='open',legs=1){
  if(format==='knockout')return cupFixtures(teams,mode);
- if(format==='groups'){const list:any[]=[];for(let i=0;i<teams.length;i+=4)list.push(...fixtures(teams.slice(i,i+4),1,mode).map(f=>({...f,group:String.fromCharCode(65+i/4),stage:'group'})));return list.sort((a,b)=>a.round-b.round||a.group.localeCompare(b.group))}
+ if(format==='groups'){const list:any[]=[],count=Math.ceil(teams.length/4),base=Math.floor(teams.length/count),extra=teams.length%count;let offset=0;for(let i=0;i<count;i++){const size=base+(i<extra?1:0);list.push(...fixtures(teams.slice(offset,offset+size),1,mode).map(f=>({...f,group:String.fromCharCode(65+i),stage:'group'})));offset+=size}return list.sort((a,b)=>a.round-b.round||a.group.localeCompare(b.group))}
  const one=fixtures(teams,1,mode).map(f=>({...f,stage:'league'}));return legs===2?[...one,...one.map(f=>({...f,home:f.away,away:f.home,seed:seed(),round:f.round+teams.length-(teams.length%2?0:1)}))]:one;
 }
 const cache=new WeakMap<object,Map<string,any[]>>();
@@ -94,7 +94,7 @@ export function advance(s:any){if(!s.fixtures.every((f:any)=>f.done)||s.format==
  if(s.playoff?.type==='double'){advanceDouble(s);return}
  const knock=s.fixtures.filter((f:any)=>f.knockout);
  if(!knock.length&&s.format==='groups'){
-  const groups=[...new Set(s.fixtures.map((f:any)=>f.group))].sort(),qualified=groups.map((g:any)=>table(s,g).slice(0,2));let pairs:any[]=[];for(let i=0;i<qualified.length;i+=2)pairs.push(qualified[i][0],qualified[i+1][1],qualified[i+1][0],qualified[i][1]);const start=s.fixtures.length;s.fixtures.push(...cupFixtures(pairs,s.mode,1));initializeDouble(s,start);return;
+  const groups=[...new Set(s.fixtures.map((f:any)=>f.group))].sort(),qualified=groups.map((g:any)=>table(s,g).slice(0,2));let pairs:any[]=[];for(let i=0;i<qualified.length;i+=2){if(qualified[i+1])pairs.push(qualified[i][0],qualified[i+1][1],qualified[i+1][0],qualified[i][1]);else pairs.push(...qualified[i])}const start=s.fixtures.length;s.fixtures.push(...cupFixtures(pairs,s.mode,1));initializeDouble(s,start);return;
  }
- const round=Math.max(...knock.map((f:any)=>f.round)),last=knock.filter((f:any)=>f.round===round);if(last.length===1){s.champion=winner(s,last[0]);return}const winners=last.map((f:any)=>s.teams.find((t:any)=>t.id===winner(s,f)));s.fixtures.push(...cupFixtures(winners,s.mode,round+1));
+ const round=Math.max(...knock.map((f:any)=>f.round)),last=knock.filter((f:any)=>f.round===round),ids=[...last.map((f:any)=>winner(s,f)),...last.flatMap((f:any)=>f.byeQualifiers||[])];if(ids.length===1){s.champion=ids[0];return}const winners=ids.map((id:string)=>s.teams.find((t:any)=>t.id===id));s.fixtures.push(...cupFixtures(winners,s.mode,round+1));
 }
