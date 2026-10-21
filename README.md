@@ -12,6 +12,18 @@ The former Netlify public URL redirects here. Its original records are retained 
 
 For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. Initial migration is complete; use the normal update route for future deployments. Do not rerun first-migration tools against the live instance.
 
+## Version 1.5 — admin invitations and playoff rules
+
+- Admin sign-in: https://goalforge-football1.wuwamconly21.workers.dev/?admin=1. The owner opens Admin access, creates a private one-use 24-hour invitation and copies it to the intended person. Each invitee chooses their own credentials. Do not share the owner's credentials or use the public sign-in link as a substitute for an invitation.
+- The owner can explicitly allow a co-admin to create invitations. This permission is off by default and is not inherited by invited admins. Co-admins can only cancel their own invitations and cannot remove admins or grant invitation permission. Disabling permission or revoking the issuer invalidates their pending invitations. Existing eight-admin capacity remains enforced on the server.
+- The Match rules tab and competition creation offer extra time then penalties, or straight to penalties after a tied 90 minutes. Settings freeze at kickoff; league/group fixtures can still draw. Penalties use a seeded first-kick toss, early termination, equal-turn sudden death, equal eligible player counts and no repeated kicker until every eligible player has kicked. Shoot-out goals remain separate from match scores and league goal difference.
+- New broadcasts have a per-kick score tracker below the pitch so it does not cover the action on phones. Actual goalkeeper saves and wide misses use different ball paths. New match events distinguish fouls, direct free kicks, penalties, throw-ins and goal kicks; wide shots count as attempts.
+- Automatic changes respect five substitutions across three in-play opportunities, available bench players and sent-off/injured player eligibility. Second-yellow dismissals remain enforced. This is a simplified football model: full collision physics, all restart infringements, disciplinary events during a shoot-out and minimum-player abandonment adjudication are not implemented.
+- Engine 4 is assigned at new kickoffs. Existing engines, active broadcasts and completed results retain their original event generation. Regression checks compared 400 legacy fixtures; 1,300 new playoff simulations, admin delegation, server enforcement, UI markup and five-language coverage are tested.
+- The verified live-release manifest enables GitHub Actions updates after checks. Keep native Cloudflare production builds disconnected. Deployment checks the initialized target, current main branch, new version and frontend assets; it does not import or reset records.
+
+Reference rules: [IFAB Law 10](https://www.theifab.com/laws/latest/determining-the-outcome-of-a-match/), [Law 3](https://www.theifab.com/laws/latest/the-players/) and [Law 14](https://www.theifab.com/laws/latest/the-penalty-kick/). This simulator is not certified or affiliated with IFAB.
+
 ## Version 1.4 — broadcast motion
 
 - Five-part seeded build-ups, short timed passes, first-touch control, defensive challenges and counterattack runs. Player movement uses bounded speed and monotone interpolation. Running legs, ball spin, shot trails, ball height and keeper reactions make movement easier to follow.
@@ -113,7 +125,7 @@ All interface copy, weather/scheduling controls, template titles, table headings
 
 ### Multiple administrators
 
-The original password administrator remains the protected owner. After signing in, use **Admin access** in the header to create a private one-use invitation (valid for 24 hours). The invited person chooses their own username and password. Up to eight active/reserved admin places are supported. Only the owner may invite or revoke access. Invited admins can manage all competitions, including teams, schedules, sponsorship and new seasons. Revocation invalidates the invited admin's sessions immediately; an admin can change their own password without altering another account. No real invitations are sent automatically.
+The original password administrator remains the protected owner. After signing in, use **Admin access** in the header to create a private one-use invitation (valid for 24 hours). The invited person chooses their own username and password. Up to eight active/reserved admin places are supported. Only the owner may revoke admin access or delegate invitation permission. Co-admins may create invitations only when explicitly permitted by the owner. Invited admins can manage all competitions, including teams, schedules, sponsorship and new seasons. Revocation invalidates the invited admin's sessions immediately; an admin can change their own password without altering another account. No real invitations are sent automatically.
 
 
 ## 1.3 — Cloudflare migration implementation
@@ -121,3 +133,4 @@ The original password administrator remains the protected owner. After signing i
 Workers API and SQLite-backed Durable Objects are in `cloudflare/`. Alarms start due fixtures without viewers; a Cron sweep provides recovery. The import-only deployment starts closed, verifies exact record checksums and refuses conflicting overwrites. The live entry point has no import route. Accounts, extra admins, transfers and historical results keep their existing data format.
 
 Run `npm run test:cloudflare` and `npm run cloudflare:check`. Account authorization and a verified private export/import are required before production cutover. The committed `wrangler.jsonc` now targets the verified live Worker. The private import entry point is no longer deployed. See `CLOUDFLARE-MIGRATION.md`. Use `migration/package-source.py` to create source packages; never include `.migration-private`, `.wrangler`, provider credentials, exports or runtime databases.
+

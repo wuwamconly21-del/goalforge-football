@@ -13,3 +13,10 @@ export function deploymentSettings(env,template) {
 export function checkLiveResponses(directory,account) {
   if(!Array.isArray(directory?.rooms)||account?.organizerConfigured!==true)throw Error('Target is not an initialized live GoalForge instance. Complete data migration first.');
 }
+export function verifiedRelease(template,release){
+  if(release.schema!==1||release.enabled!==true||template.main!=='cloudflare/worker.ts'||template.vars?.MIGRATION_MODE!=='live'||template.name!==release.worker)throw Error('Release must match the verified live Worker.');
+  const url=new URL(release.url);
+  if(url.protocol!=='https:'||url.origin!==release.url||url.username||url.password||url.port||!url.hostname.startsWith(release.worker+'.')||!url.hostname.endsWith('.workers.dev'))throw Error('Release URL does not match the Worker.');
+  if(release.verifiedMigrationRun!=='https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781')throw Error('Verified migration evidence required.');
+  return {worker:release.worker,url:url.origin};
+}

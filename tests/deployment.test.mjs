@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {deploymentSettings,checkLiveResponses} from '../migration/deployment-guard.mjs';
+import {deploymentSettings,checkLiveResponses,verifiedRelease} from '../migration/deployment-guard.mjs';
 const env={CLOUDFLARE_LIVE_READY:'true',CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),CLOUDFLARE_WORKER_NAME:'goalforge-example',CLOUDFLARE_API_TOKEN:'test-only',GOALFORGE_LIVE_URL:'https://goalforge-example.example.workers.dev'};
 const original={main:'cloudflare/migration-worker.ts',vars:{MIGRATION_MODE:'import'},durable_objects:{bindings:[{name:'ARENA',class_name:'ArenaRecords'}]}};
 const result=deploymentSettings(env,original);
@@ -13,3 +13,9 @@ assert.throws(()=>checkLiveResponses({rooms:[]},{organizerConfigured:false}));
 assert.throws(()=>checkLiveResponses({error:'maintenance'},{organizerConfigured:true}));
 checkLiveResponses({rooms:[]},{organizerConfigured:true});
 console.log('Deployment guard: explicit readiness, credentials, target matching, initialized API and retained storage bindings passed.');
+
+const release={schema:1,enabled:true,worker:'goalforge-football1',url:'https://goalforge-football1.wuwamconly21.workers.dev',verifiedMigrationRun:'https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781'},live={name:release.worker,main:'cloudflare/worker.ts',vars:{MIGRATION_MODE:'live'}};
+assert.deepEqual(verifiedRelease(live,release),{worker:release.worker,url:release.url});
+for(const mutation of [{enabled:false},{url:'https://another.example.workers.dev'},{worker:'wrong'},{verifiedMigrationRun:'unverified'}])assert.throws(()=>verifiedRelease(live,{...release,...mutation}));
+assert.throws(()=>verifiedRelease({...live,main:'cloudflare/migration-worker.ts'},release));
+assert.throws(()=>verifiedRelease({...live,vars:{MIGRATION_MODE:'import'}},release));

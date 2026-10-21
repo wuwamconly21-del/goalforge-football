@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "enabled": true,
+  "worker": "goalforge-football1",
+  "url": "https://goalforge-football1.wuwamconly21.workers.dev",
+  "verifiedMigrationRun": "https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781"
+}

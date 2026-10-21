@@ -10,7 +10,7 @@ Satu aplikasi, satu sumber data, tiga ruang berdasarkan peranan. Pengasingan aks
 | --- | --- | --- |
 | Viewer | Tonton pertandingan, lineup, cuaca, VAR, jadual, keputusan dan akhbar; chat sebagai tetamu | Tiada kawalan kickoff, keputusan, roster, harga pemain atau musim. Tetap tertakluk pada mute dan had chat. |
 | Manager | Daftar pasukan mengikut kuota, muat naik logo, isi pemain, formasi dan gaya permainan, beli/jual pemain dengan GF maya, urus kesebelasan pasukan sendiri | Identiti pemilik disemak di server. Tidak boleh mengubah pasukan orang lain atau mengawal liga. Pasukan yang sedang bermain dikunci. |
-| Admin | Kelola kejohanan, kuota, pasukan, jadual, kickoff, cuaca, penaja, banner, akhbar dan moderasi | Akaun admin diperlukan. Musim baharu hanya selepas arahan admin. Pemilik asal sahaja mengurus jemputan/revokasi admin. |
+| Admin | Kelola kejohanan, kuota, pasukan, jadual, kickoff, cuaca, penaja, banner, akhbar dan moderasi | Akaun admin diperlukan. Musim baharu hanya selepas arahan admin. Pemilik asal mengawal revokasi dan boleh memberi kuasa jemputan kepada admin terpilih. |
 
 ## Pengalaman pengguna yang dicadangkan
 
@@ -34,3 +34,8 @@ Satu aplikasi, satu sumber data, tiga ruang berdasarkan peranan. Pengasingan aks
 ## Perkara yang belum dijanjikan
 
 Dokumen ini bukan bukti bahawa semua pepijat telah diperbaiki. Kadar FPS sebenar, kapasiti penonton, sistem bayaran dan akses tiga halaman perlu diuji selepas folder sumber lengkap dan deployment ujian tersedia.
+
+
+## v1.5 invitation delegation
+
+The public admin sign-in entry is /?admin=1; it grants no privilege by itself. The owner can create single-use private invitations and may enable invitation permission for selected active admins. Delegated admins can only create invitations or cancel invitations they issued. They cannot revoke administrators, alter invitation permissions or pass that permission to new invitees. Revoking an admin or disabling their invitation permission invalidates their pending invites. All restrictions and eight-place capacity are enforced on the backend using revision checks.

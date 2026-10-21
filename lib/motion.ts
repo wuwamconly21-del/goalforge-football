@@ -31,15 +31,15 @@ export function makePlan(ev:any[],seed:number,teams:any[]=[]){
  frame(0,0,6,{x:.5,y:.5});
  // A review has one shot, followed by its verdict. Do not animate it twice or
  // reveal a confirmed goal before the review's seven-second stoppage finishes.
- const shots=ev.filter(e=>['review','goal','save','corner','block','disallowed','penaltymiss','offside'].includes(e.type)&&Number.isFinite(e.x)&&!(e.type==='goal'||e.type==='disallowed'?ev.some(r=>r.type==='review'&&r.side===e.side&&r.pIndex===e.pIndex&&e.time>r.time&&e.time-r.time<1):false));
+ const shots=ev.filter(e=>['review','goal','save','corner','block','disallowed','penaltymiss','offside','wide'].includes(e.type)&&Number.isFinite(e.x)&&!(e.type==='goal'||e.type==='disallowed'?ev.some(r=>r.type==='review'&&r.side===e.side&&r.pIndex===e.pIndex&&e.time>r.time&&e.time-r.time<1):false));
  for(const e of shots){
   const last=frames.at(-1)!,start=last.t+.75,end=e.time-.58,span=end-start,side=e.side;
   if(span<.1)continue;
   const lane=.2+rand()*.6,indices=[2+Math.floor(rand()*3),5+Math.floor(rand()*3),8+Math.floor(rand()*3),5+Math.floor(rand()*3),e.pIndex??9];
   const xs=e.counter?[.28,.43,.61,.75,e.x]:[.25,.40,.54,.72,e.x];
-  if(e.method==='penalty'){
-   frame(start,side,e.pIndex??9,{x:side===0?.895:.105,y:.5},'penalties');
-   frame(end,side,e.pIndex??9,{x:side===0?.895:.105,y:.5},'penalties');
+  if(e.method==='penalty'||e.method==='freeKick'){
+   frame(start,side,e.pIndex??9,{x:e.method==='freeKick'?(side===0?.76:.24):(side===0?.895:.105),y:.5},e.method==='freeKick'?'freeKick':'penalties');
+   frame(end,side,e.pIndex??9,{x:e.method==='freeKick'?(side===0?.76:.24):(side===0?.895:.105),y:.5},e.method==='freeKick'?'freeKick':'penalties');
   }else{
    for(let k=0;k<5;k++){
     const t=start+span*k/4,x=k===4?e.x:side===0?xs[k]:1-xs[k],y=k===4?e.y:clamp(lane+Math.sin(k*1.9+rand())*.16,.12,.88);
@@ -49,7 +49,7 @@ export function makePlan(ev:any[],seed:number,teams:any[]=[]){
     if(k===2&&span>4){const dt=Math.min(.42,span/16);frame(t+dt,side,indices[k],{x:x+(side===0?.012:-.012),y},'playing',false,true);}
    }
   }
-  const target=e.type==='goal'||e.type==='review'?{x:side===0?1.009:-.009,y:.5+(rand()-.5)*.06}:e.type==='corner'?{x:side===0?.99:.01,y:rand()>.5?.04:.96}:{x:side===0?.967:.033,y:.49+(rand()-.5)*.09};
+  const target=e.type==='wide'?{x:side===0?1.02:-.02,y:rand()>.5?.25:.75}:e.type==='goal'||e.type==='review'?{x:side===0?1.009:-.009,y:.5+(rand()-.5)*.06}:e.type==='corner'?{x:side===0?.99:.01,y:rand()>.5?.04:.96}:{x:side===0?.967:.033,y:.49+(rand()-.5)*.09};
   frame(e.time,side,-1,target,e.type==='review'?'review':e.type==='goal'?'goal':e.type==='corner'?'corner':e.type==='block'?'block':e.type==='offside'?'offside':'saveEvent',true,false,e.id);
   frame(e.time+.38,side,-1,target,e.type==='goal'?'goal':e.type==='review'?'review':'playing');
  }

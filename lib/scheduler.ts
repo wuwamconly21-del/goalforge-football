@@ -3,7 +3,7 @@ import {matchClock,matchPlaybackDuration,advance,table} from './sim';
 import {matchWeather} from './weather';
 export function nextFixtureIndex(s:any){if(s.live)return s.live.index;const scheduled=s.fixtures.map((f:any,index:number)=>({f,index})).filter((v:any)=>!v.f.done&&v.f.autoStart&&v.f.scheduledAt).sort((a:any,b:any)=>Date.parse(a.f.scheduledAt)-Date.parse(b.f.scheduledAt));return scheduled[0]?.index??s.fixtures.findIndex((f:any)=>!f.done)}
 export function kickOff(s:any,index:number,opened=Date.now(),source='manual'){
- const f=s.fixtures[index];f.weatherModel=1;f.engine=3;f.rosters=structuredClone([s.teams.find((t:any)=>t.id===f.home),s.teams.find((t:any)=>t.id===f.away)]).map(({managerId,...t}:any)=>t);f.weather=matchWeather(s,f);f.actualOpenedAt=opened;s.live={index,auto:true,source,autoElapsed:0,elapsed:0,opened,started:opened+16000,running:true,speed:1};
+ const f=s.fixtures[index];f.weatherModel=1;f.engine=4;f.tiebreak=f.knockout?(f.tiebreak||s.knockoutRule||'extraTime'):undefined;f.rosters=structuredClone([s.teams.find((t:any)=>t.id===f.home),s.teams.find((t:any)=>t.id===f.away)]).map(({managerId,...t}:any)=>t);f.weather=matchWeather(s,f);f.actualOpenedAt=opened;s.live={index,auto:true,source,autoElapsed:0,elapsed:0,opened,started:opened+16000,running:true,speed:1};
 }
 export function confirmMatch(s:any,at=Date.now()){const f=s.fixtures[s.live.index];f.done=true;f.confirmedAt=at;s.live=null;s.lastMatchEndedAt=at;advance(s);if(s.format==='league'&&s.fixtures.every((f:any)=>f.done))s.champion=table(s)[0]?.id||null}
 export function scheduledChanges(s:any,now=Date.now()){

@@ -54,3 +54,10 @@ The existing D1 binding in wrangler.jsonc is preserved. Adding a D1 binding does
 Three-role design and monetization recommendations:
 - docs/ROLES-AND-PERMISSIONS.md
 - docs/PRODUCT-AND-DEPLOYMENT.md
+
+
+## Active update route after v1.5
+
+GitHub Actions is now the selected production update route. The reviewed migration/live-release.json pins the existing goalforge-football1 Worker and references the successful first migration. Checks validate it against the live Wrangler configuration before enabling the deploy job. Runtime API checks refuse an uninitialized target; deployment verifies the new version and frontend asset reference.
+
+The production environment supplies CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID and the confirmed CLOUDFLARE_NATIVE_BUILDS_PAUSED=true variable. Worker name and URL come from the validated release manifest. No new readiness variables or tokens are needed for ordinary updates. Keep native Cloudflare builds disconnected and do not rerun first migration.
