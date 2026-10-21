@@ -1,0 +1,26 @@
+import type {ArenaStore,RecordRow} from './arena-server';
+import type {ArenaIdentity} from './arena-access';
+import {validRoom} from './arena-access';
+export class ClaimError extends Error{constructor(public code:string,public status=400){super(code)}}
+const fail=(key:string,status=400):never=>{throw new ClaimError(key,status)};
+const clean=(v:any,max:number)=>typeof v==='string'?v.replace(/[\u0000-\u001f\u007f]/g,'').trim().slice(0,max):'';
+export function proofImage(value:any){if(typeof value!=='string'||value.length>1200000)fail('claimProofError');const match=/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(value);if(!match)fail('claimProofError');let raw='';try{raw=atob(match![2])}catch{fail('claimProofError')}const valid=match![1]==='image/png'?raw.startsWith('\x89PNG\r\n\x1a\n'):match![1]==='image/jpeg'?raw.startsWith('\xff\xd8\xff'):raw.startsWith('RIFF')&&raw.slice(8,12)==='WEBP';if(!valid||raw.length<16)fail('claimProofError');return {type:match![1],bytes:Uint8Array.from(raw,c=>c.charCodeAt(0))}}
+export const managerClaims=(s:any,identity:ArenaIdentity|null|undefined)=>identity?.isManager?(s.managerClaims||[]).filter((c:any)=>c.managerId===identity.userId).map(({id,teamId,teamName,ign,note,status,submittedAt,reviewedAt,reviewNote,season}:any)=>({id,teamId,teamName,ign,note,status,submittedAt,reviewedAt,reviewNote,season})):[];
+export async function submitManagerClaim(db:ArenaStore,row:RecordRow,s:any,identity:ArenaIdentity,b:any,now=Date.now()){
+ if(s.teams.some((t:any)=>t.managerId===identity.userId))fail('claimOwnsTeam',409);
+ const team=s.teams.find((t:any)=>t.id===b.teamId);if(!team||team.managerId)fail('claimTeamUnavailable',409);
+ const claims=s.managerClaims||[],mine=claims.filter((c:any)=>c.managerId===identity.userId);if(mine.some((c:any)=>c.status==='pending'))fail('claimPending',409);if(mine.filter((c:any)=>c.season===s.season).length>=5||claims.filter((c:any)=>c.status==='pending').length>=64)fail('claimLimit',429);
+ const ign=clean(b.ign,60),note=clean(b.note,400);if(ign.length<2||typeof b.ign!=='string'||b.ign.length>60)fail('claimIgnRequired');proofImage(b.proof);
+ const id=crypto.randomUUID(),proofKey='__manager_proof_'+id,claim={id,teamId:team.id,teamName:team.name,managerId:identity.userId,managerName:clean(identity.displayName,32)||'Manager',ign,note,status:'pending',season:s.season,submittedAt:now};
+ await db.create({id:proofKey,secret:'',revision:0,data:JSON.stringify({room:row.id,claimId:id,managerId:identity.userId,image:b.proof})});s.managerClaims=[...claims,claim];
+ if(!await db.update({...row,revision:row.revision+1,data:JSON.stringify(s)},row)){const orphan=await db.get(proofKey);if(orphan)await db.update({...orphan,revision:orphan.revision+1,data:'{}'},orphan);fail('conflict',409)}return row.revision+1;
+}
+export function reviewManagerClaim(s:any,b:any,now=Date.now()){
+ const claim=(s.managerClaims||[]).find((c:any)=>c.id===b.claimId);if(!claim||claim.status!=='pending')fail('claimNotPending',409);if(!['approve','reject'].includes(b.decision))fail('claimDecisionInvalid');const note=clean(b.note,400);
+ if(b.decision==='reject'){if(!note)fail('claimReviewNote');Object.assign(claim,{status:'rejected',reviewedAt:now,reviewNote:note});return}
+ if(b.verified!==true)fail('claimReviewRequired');const team=s.teams.find((t:any)=>t.id===claim.teamId);if(!team||team.managerId)fail('claimTeamUnavailable',409);if(s.teams.some((t:any)=>t.managerId===claim.managerId))fail('claimOwnsTeam',409);
+ team.managerId=claim.managerId;team.managerName=claim.managerName;team.managerVerified=true;Object.assign(claim,{status:'approved',reviewedAt:now,reviewNote:note});
+ for(const other of s.managerClaims)if(other.id!==claim.id&&other.status==='pending'&&(other.teamId===team.id||other.managerId===claim.managerId))Object.assign(other,{status:'superseded',reviewedAt:now,reviewNote:''});
+}
+export function expireTeamClaims(s:any,ids:string[],now=Date.now()){for(const c of s.managerClaims||[])if(ids.includes(c.teamId)&&c.status==='pending')Object.assign(c,{status:'expired',reviewedAt:now})}
+export function createManagerProofHandler(db:ArenaStore,options:{identity?:ArenaIdentity|null}={}){return async(r:Request)=>{const headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff'};if(r.method!=='GET')return new Response('Method not allowed',{status:405,headers});try{const url=new URL(r.url),room=url.searchParams.get('room'),id=url.searchParams.get('claim');if(!validRoom(room)||!validRoom(id))return new Response('Not found',{status:404,headers});const row=await db.get(room),s=row?JSON.parse(row.data):null,claim=s&&!s.removedAt&&(s.managerClaims||[]).find((c:any)=>c.id===id),identity=options.identity;if(!claim||!identity?.isAdmin&&!(identity?.isManager&&identity.userId===claim.managerId))return new Response('Not found',{status:404,headers});const proof=await db.get('__manager_proof_'+id),data=proof?JSON.parse(proof.data):null;if(data?.room!==room||data?.claimId!==id||data?.managerId!==claim.managerId)return new Response('Not found',{status:404,headers});const image=proofImage(data.image);return new Response(image.bytes,{headers:{...headers,'Content-Type':image.type,'Content-Disposition':'inline'}})}catch{return new Response('Not found',{status:404,headers})}}}

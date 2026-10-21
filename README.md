@@ -138,3 +138,7 @@ Run `npm run test:cloudflare` and `npm run cloudflare:check`. Account authorizat
 ## Version 1.12 — manual season opening
 
 Creating a competition or preparing the next season now waits for **Start season & opening** from an admin. Set the public countdown in Season Control or the season opening panel, using Malaysia time (UTC+8). At zero the season waits for the admin; it never starts itself. Registration must be closed before opening. Automatic progression and result confirmation still work for later matches after the manual opening. See [the season guide](docs/SEASONS-AND-MONETIZATION.md) for details.
+
+## Version 1.13 — verified claims for existing teams
+
+A manager can create an account, choose an unclaimed team in their competition, enter their Diplomacia IGN and upload a profile screenshot. The admin reviews it in **Teams → Review manager claims**, then approves or rejects it. Approval grants control of only that team; pending or rejected claims grant no team permissions. Evidence is served privately to the applicant and admins. Teams without an approved manager continue playing through the AI simulation. Existing team owners and the create-your-own-team registration flow remain supported. See [Manager claims](docs/MANAGER-CLAIMS.md).

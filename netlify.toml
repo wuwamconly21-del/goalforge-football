@@ -27,6 +27,11 @@
   status = 200
   force = true
 [[redirects]]
+  from = "/api/manager-proof"
+  to = "/.netlify/functions/arena?service=manager-proof"
+  status = 200
+  force = true
+[[redirects]]
   from = "/api/arena"
   to = "/.netlify/functions/arena?service=arena"
   status = 200
