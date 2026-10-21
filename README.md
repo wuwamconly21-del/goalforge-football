@@ -146,3 +146,7 @@ A manager can create an account, choose an unclaimed team in their competition, 
 ### v1.14 club development and stadium atmosphere
 
 20-second default sponsor breaks (15–30 configurable), bulk squad reuse across tournaments, owned club stadiums, training facilities, shield-shaped player passports, readiness and special traits, real guest ultras flags and confirmed-goal celebrations. [Feature behavior and limits](docs/CLUB-DEVELOPMENT.md). Public polling and request-scoped RPC reuse reduce Cloudflare request pressure; a quota outage remains clearly visible and never resets tournament data.
+
+### v1.15 request efficiency
+
+Chat now runs authentication, reads and CAS within the existing global Durable Object, plus a read-only room validation call: measured presence RPCs fall from five to two. Browser chat refresh/heartbeat uses one timer, avoids the redundant follow-up GET and retains a 30-second presence-write cadence. Viewer/lobby polling is lower, hidden tabs suspend requests, and quota errors back off for five minutes. [Behavior, benchmark and limits](docs/REQUEST-EFFICIENCY.md).
