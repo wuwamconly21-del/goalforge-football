@@ -1,0 +1,3 @@
+import React from 'react';import {useLocale} from '../lib/i18n';
+export const supportUrl='https://ko-fi.com/nelyxentertainment';
+export default function SupportGoalForge({compact=false}:any){const {t}=useLocale();if(compact)return <a className="support-link" href={supportUrl} target="_blank" rel="noopener noreferrer"><span aria-hidden="true">☕</span> {t('supportGoalForge')}</a>;return <aside className="support-card panel"><span className="support-cup" aria-hidden="true">☕</span><div><strong>{t('supportGoalForge')}</strong><p>{t('supportGoalForgeHelp')}</p><small>{t('supportCurrency')}</small></div><a className="button outline" href={supportUrl} target="_blank" rel="noopener noreferrer">{t('buyCoffee')} ↗</a></aside>}
