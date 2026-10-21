@@ -19,3 +19,9 @@ assert.deepEqual(verifiedRelease(live,release),{worker:release.worker,url:releas
 for(const mutation of [{enabled:false},{url:'https://another.example.workers.dev'},{worker:'wrong'},{verifiedMigrationRun:'unverified'}])assert.throws(()=>verifiedRelease(live,{...release,...mutation}));
 assert.throws(()=>verifiedRelease({...live,main:'cloudflare/migration-worker.ts'},release));
 assert.throws(()=>verifiedRelease({...live,vars:{MIGRATION_MODE:'import'}},release));
+
+const {storageAvailability}=await import('../migration/deployment-guard.mjs'),health={application:'GoalForge',version:'1.14.0',mode:'live'},quota={code:'storageQuota'};
+assert.equal(storageAvailability({rooms:[]},{organizerConfigured:true},health),'ready');assert.equal(storageAvailability(quota,quota,health),'quota');assert.equal(storageAvailability({error:'Exceeded allowed volume of requests in Durable Objects free tier.'},quota,health),'quota');for(const invalid of [{application:'Other',version:'1.14.0',mode:'live'},{...health,mode:'import'},{}])assert.throws(()=>storageAvailability(quota,quota,invalid));assert.throws(()=>storageAvailability({error:'Unknown failure'},quota,health));assert.throws(()=>storageAvailability(quota,{organizerConfigured:false},health));
+console.log('Quota-aware update guard: only an already-live verified application can receive a data-preserving update during a recognized storage quota outage; unknown failures remain blocked.');
+
+assert.equal(storageAvailability({error:'Exceeded allowed volume of requests in Durable Objects free tier.'},{error:'Permintaan akaun tidak dapat diproses'},{...health,version:'1.13.0'}),'quota');assert.throws(()=>storageAvailability(quota,{error:'Permintaan akaun tidak dapat diproses'},health));

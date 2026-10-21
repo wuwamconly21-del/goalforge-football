@@ -1,6 +1,6 @@
 import type {ArenaStore,RecordRow} from './arena-server';
 export type ArenaIdentity={userId:string,displayName?:string,isAdmin?:boolean,isOwner?:boolean,adminId?:string,canInviteAdmins?:boolean,isManager?:boolean,guest?:boolean,sessionKey?:string};
-export type AccessOptions={identity?:ArenaIdentity|null,setupHash?:string,signInPath?:string,signOutPath?:string,passwordOnly?:boolean};
+export type AccessOptions={identity?:ArenaIdentity|null,setupHash?:string,signInPath?:string,signOutPath?:string,publicOnly?:boolean,passwordOnly?:boolean};
 export const validRoom=(v:any):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 export async function digest(v:string){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v)))].map(b=>b.toString(16).padStart(2,'0')).join('')}
 export async function ownerRecord(db:ArenaStore){let r=await db.get('__arena_owner');return r?JSON.parse(r.data):null}

@@ -142,3 +142,7 @@ Creating a competition or preparing the next season now waits for **Start season
 ## Version 1.13 — verified claims for existing teams
 
 A manager can create an account, choose an unclaimed team in their competition, enter their Diplomacia IGN and upload a profile screenshot. The admin reviews it in **Teams → Review manager claims**, then approves or rejects it. Approval grants control of only that team; pending or rejected claims grant no team permissions. Evidence is served privately to the applicant and admins. Teams without an approved manager continue playing through the AI simulation. Existing team owners and the create-your-own-team registration flow remain supported. See [Manager claims](docs/MANAGER-CLAIMS.md).
+
+### v1.14 club development and stadium atmosphere
+
+20-second default sponsor breaks (15–30 configurable), bulk squad reuse across tournaments, owned club stadiums, training facilities, shield-shaped player passports, readiness and special traits, real guest ultras flags and confirmed-goal celebrations. [Feature behavior and limits](docs/CLUB-DEVELOPMENT.md). Public polling and request-scoped RPC reuse reduce Cloudflare request pressure; a quota outage remains clearly visible and never resets tournament data.

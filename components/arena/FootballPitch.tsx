@@ -1,3 +1,4 @@
+import {matchStadium} from '../../lib/club-development';
 import React,{useEffect,useMemo,useRef} from 'react';
 import {events,lineupAt,matchClock,footballTeams,score} from '../../lib/sim';
 import {makePlan,samplePlan} from '../../lib/motion';
@@ -22,8 +23,8 @@ function FootballPitch({state:s,fixture:f,offset=0,clock:m,onKick}:{state:any,fi
    if(lastDraw&&(reduced?elapsed<32:rafAverage<11&&elapsed<15))return;
    const began=performance.now(),delta=Math.max(.008,Math.min(.1,elapsed/1000));lastDraw=stamp;const {s:state,f:fixture,m:display,offset:targetOffset,onKick,t:translate,lang:locale}=latest.current;
    smoothOffset+=Math.max(-1,Math.min(1,targetOffset-smoothOffset));const wall=anchorWall+stamp-anchorStamp+smoothOffset,clock=state.live?matchClock(state,wall):display,time=clock.time||0,scene=samplePlan(plan,time),swapped=(time>=90&&time<180)||(time>=210&&time<240),sx=(v:number)=>x(swapped?1-v:v);
-   const nextRatio=Math.min(budget.lite?1:1.65,Math.max(.4,width/w*(window.devicePixelRatio||1)));if(decorState!==state||decorLocale!==locale){decorState=state;decorLocale=locale;cosmetic=JSON.stringify([state.stadium,state.sponsors?.map((v:any)=>[v.brand,v.placement]),locale])}
-   if(dirty||ratio!==nextRatio||baseKey!==cosmetic){ratio=nextRatio;baseKey=cosmetic;canvas.width=Math.max(1,Math.round(w*ratio));canvas.height=Math.max(1,Math.round(h*ratio));background.width=canvas.width;background.height=canvas.height;bg.setTransform(ratio,0,0,ratio,0,0);paintGround(bg,state,weather,translate('universe'));dirty=false}
+   const nextRatio=Math.min(budget.lite?1:1.65,Math.max(.4,width/w*(window.devicePixelRatio||1)));if(decorState!==state||decorLocale!==locale){decorState=state;decorLocale=locale;cosmetic=JSON.stringify([matchStadium(state,fixture),state.sponsors?.map((v:any)=>[v.brand,v.placement]),locale])}
+   if(dirty||ratio!==nextRatio||baseKey!==cosmetic){ratio=nextRatio;baseKey=cosmetic;canvas.width=Math.max(1,Math.round(w*ratio));canvas.height=Math.max(1,Math.round(h*ratio));background.width=canvas.width;background.height=canvas.height;bg.setTransform(ratio,0,0,ratio,0,0);paintGround(bg,{...state,stadium:matchStadium(state,fixture)},weather,translate('universe'));dirty=false}
    ctx.setTransform(ratio,0,0,ratio,0,0);ctx.drawImage(background,0,0,w,h);
    if(Math.abs(time-lineupTime)>.12||time<lineupTime){current=lineupAt(state,fixture,time);lineupTime=time}const absent=new Set(current.absent),intro=['prematch','entrance','lineup','countdown'].includes(clock.status),shooting=['penalties','shootout'].includes(clock.status),medical=clock.status==='injury'&&clock.stop?medicalScene(plan,clock.stop,4-(clock.autoResumeIn||0)):null;
    const shootKicks=shooting?ev.filter(e=>e.type==='penaltykick'):[],previousKick=shootKicks.filter(e=>e.time<=time).at(-1),shownKick=previousKick&&time-previousKick.time<1.3?previousKick:shootKicks.find(e=>e.time>time)||previousKick;

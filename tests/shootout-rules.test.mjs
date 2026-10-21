@@ -39,7 +39,7 @@ try{
  const db=memory(),handle=createArenaHandler(db,{identity:{userId:'owner',isAdmin:true},passwordOnly:true});
  const post=async body=>{const r=await handle(new Request('https://goal.test/api/arena',{method:'POST',body:JSON.stringify(body)}));return {status:r.status,...await r.json()}};
  let result=await post({action:'create',autoFlow:false,preset:'my',name:'Playoff tests',format:'knockout',teamIds:presetTeams('my').slice(0,4).map(t=>t.id),knockoutRule:'penalties'});assert.equal(result.status,200);
- const room=result.room;result=await post({action:'start',room,revision:result.revision});assert.equal(result.status,200);const f=result.state.fixtures[0],before=JSON.stringify(events(result.state,f));assert.equal(f.engine,4);assert.equal(f.tiebreak,'penalties');
+ const room=result.room;result=await post({action:'start',room,revision:result.revision});assert.equal(result.status,200);const f=result.state.fixtures[0],before=JSON.stringify(events(result.state,f));assert.equal(f.engine,5);assert.equal(f.tiebreak,'penalties');
  result=await post({action:'footballRules',room,revision:result.revision,knockoutRule:'extraTime'});assert.equal(result.status,200);assert.equal(result.state.fixtures[0].tiebreak,'penalties');assert.equal(JSON.stringify(events(result.state,result.state.fixtures[0])),before,'rule changes cannot rewrite a live match');
  assert.equal((await post({action:'footballRules',room,revision:result.revision,knockoutRule:'invalid'})).status,400);
  console.log('PASS: 1,300 playoff simulations; early finish, sudden death, both toss outcomes, eligible kickers, equal numbers, substitution limits, league draws, restarts and frozen live rules.');

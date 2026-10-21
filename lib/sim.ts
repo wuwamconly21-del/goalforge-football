@@ -1,3 +1,4 @@
+import {developmentPower,finishingPower} from './club-development';
 import {initializeDouble,advanceDouble} from './playoffs';
 import {broadcastPhase} from './broadcast';
 import {createShootout,equalShootoutPlayers} from './shootout';
@@ -26,7 +27,7 @@ export function events(s:any,f:any):any[]{let c=cache.get(s);if(!c){c=new Map();
  const choose=(side:number,attack=false)=>{let list=available(side);if(attack&&list.some(i=>i>=5))list=list.filter(i=>i>=5);return list[Math.floor(r()*list.length)]};
  const avg=(t:any)=>t.players.reduce((a:number,p:any)=>a+p.rating,0)/11;
  const form=[.82+r()*.36,.82+r()*.36],strength=f.mode==='rating'?(avg(teams[0])-avg(teams[1]))/100:0;
- const weather=weatherInfo(s,f),powers=teams.map(tacticalPower),tactical=f.mode==='rating';
+ const weather=weatherInfo(s,f),powers=teams.map(t=>{const power=tacticalPower(t);if(f.engine>=5){const dev=developmentPower(t);for(const k of ['attack','defence','control'])power[k]*=dev[k]}return power}),tactical=f.mode==='rating';
  const windows=[0,0],injuries=[0,0],subSlots=[new Set<number>(),new Set<number>()],subStages=[0,0];
  function tacticalSubs(time:number){if(!modern)return;for(let side=0;side<2;side++){
   const stage=subStages[side];if(stage>=3||time<[103,133,163][stage])continue;subStages[side]++;
@@ -47,7 +48,7 @@ export function events(s:any,f:any):any[]{let c=cache.get(s);if(!c){c=new Map();
   tacticalSubs(time);const at=time-2.2;
   if((!injury||modern&&injuries[side]<1)&&(!modern||injuries[side]<1)&&time>20&&r()<.11*weather.injury){const who=choose(side);if(who!==undefined){const old=lineups[side][who],bench=teams[side].bench||[],bi=bench.findIndex((b:any,i:number)=>b.position===old.position&&!used[side].has(i));push({type:'injury',time:at,side,pIndex:who,player:old.name,stoppage:true,decision:'medical'});lineups[side][who]=null;if(bi>=0&&subs[side]<5&&(!modern||windows[side]<3)){used[side].add(bi);subs[side]++;if(modern){windows[side]++;subSlots[side].add(who);yellow[side].delete(who)}lineups[side][who]={...bench[bi]};push({type:'substitution',time:at+.2,side,pIndex:who,player:bench[bi].name,outPlayer:old.name,replacement:{...bench[bi]},...(modern?{window:windows[side]}:{})})}injury=true;if(modern)injuries[side]++}}
   else if(r()<.19*(tactical?powers[1-side].cards:1)){const offender=1-side,who=choose(offender);if(who!==undefined){const count=(yellow[offender].get(who)||0)+1,straight=r()<.045,card=straight||count>=2?'red':'yellow';yellow[offender].set(who,count);if(card==='red')red[offender].add(who);push({type:'card',time:at,side:offender,pIndex:who,player:lineups[offender][who].name,card,secondYellow:!straight&&count>=2,decision:card==='red'?'sentOff':'caution'});if(r()<.2)push({type:'protest',time:at+.2,side:offender,player:teams[offender].name,stoppage:true,decision:'decisionStands'})}}
-  p=choose(side,true);if(p===undefined)continue;const player=lineups[side][p],roll=r(),foul=modern&&r()<.22,penalty=modern?foul&&r()<.27:r()<.065,freeKick=foul&&!penalty,offside=!penalty&&!freeKick&&r()<.09,goal=!offside&&roll<(penalty?.75:.20*(freeKick?.65:1)*form[side]*weather.accuracy*(weather.type==='sunny'&&f.weatherModel&&time>90?.96:1)*(tactical?powers[side].attack/powers[1-side].defence:1)+(f.mode==='rating'?(player.rating-teams[1-side].players[0].rating)/100*.06:0));
+  p=choose(side,true);if(p===undefined)continue;const player=lineups[side][p],roll=r(),foul=modern&&r()<.22,penalty=modern?foul&&r()<.27:r()<.065,freeKick=foul&&!penalty,offside=!penalty&&!freeKick&&r()<.09,goal=!offside&&roll<(penalty?.75:.20*(freeKick?.65:1)*(f.engine>=5&&f.mode==='rating'?finishingPower(player,time/2):1)*form[side]*weather.accuracy*(weather.type==='sunny'&&f.weatherModel&&time>90?.96:1)*(tactical?powers[side].attack/powers[1-side].defence:1)+(f.mode==='rating'?(player.rating-teams[1-side].players[0].rating)/100*.06:0));
   const base={time,side,pIndex:p,player:player.name,method:penalty?'penalty':freeKick?'freeKick':r()<.25?'header':'openPlay',counter:r()<.3,x:side===0?.92:.08,y:.46+r()*.08};
   if(foul){const offender=choose(1-side);push({type:'foul',time:time-1.3,side:1-side,pIndex:offender,player:offender===undefined?teams[1-side].name:lineups[1-side][offender].name,decision:penalty?'penaltyAwarded':'freeKickAwarded'});push({type:penalty?'penaltyAwarded':'freeKick',time:time-.7,side,pIndex:p,player:player.name})}
   if(modern&&!foul&&r()<.12)push({type:'throwIn',time:time-1.5,side,pIndex:p,player:player.name});

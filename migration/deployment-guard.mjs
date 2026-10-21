@@ -20,3 +20,9 @@ export function verifiedRelease(template,release){
   if(release.verifiedMigrationRun!=='https://github.com/wuwamconly21-del/goalforge-football/actions/runs/39525146781')throw Error('Verified migration evidence required.');
   return {worker:release.worker,url:url.origin};
 }
+
+export function storageAvailability(directory,account,health){
+ const quota=v=>v?.code==='storageQuota'||v?.error==='Exceeded allowed volume of requests in Durable Objects free tier.'||v?.error==='Exceeded allowed volume of requests in Durable Objects free tier';
+ if((quota(directory)||Array.isArray(directory?.rooms))&&(quota(account)||account?.organizerConfigured===true||quota(directory)&&account?.error==='Permintaan akaun tidak dapat diproses'&&health?.version==='1.13.0')&&(quota(directory)||quota(account))&&health?.application==='GoalForge'&&health?.mode==='live'&&/^1\.\d+\.\d+$/.test(health?.version||''))return 'quota';
+ checkLiveResponses(directory,account);return 'ready';
+}

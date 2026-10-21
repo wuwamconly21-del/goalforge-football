@@ -1,16 +1,18 @@
+import {snapshotPlayer,applyMatchWear} from './club-development';
+import {ensureMarket} from './market';
 import {awaitsSeasonOpening} from './season-opening';
 import {prepareFlow,flowHeld,confirmDueAt} from './match-flow';
 import {applySchedulePlan} from './tournament-schedule';
-import {broadcastSettings} from './broadcast';
+import {broadcastSettings,breakDuration} from './broadcast';
 import type {ArenaStore,RecordRow} from './arena-server';
-import {matchClock,matchPlaybackDuration,advance,table} from './sim';
+import {events,matchClock,matchPlaybackDuration,advance,table} from './sim';
 import {matchWeather} from './weather';
 export function nextFixtureIndex(s:any){if(s.live)return s.live.index;const scheduled=s.fixtures.map((f:any,index:number)=>({f,index})).filter((v:any)=>!v.f.done&&v.f.autoStart&&v.f.scheduledAt).sort((a:any,b:any)=>Date.parse(a.f.scheduledAt)-Date.parse(b.f.scheduledAt));return scheduled[0]?.index??s.fixtures.findIndex((f:any)=>!f.done)}
 export function kickOff(s:any,index:number,opened=Date.now(),source='manual'){
  if(s.flow)s.flow.next=null;
- const f=s.fixtures[index];f.weatherModel=1;f.engine=4;f.tiebreak=f.knockout?(f.tiebreak||s.knockoutRule||'extraTime'):undefined;f.rosters=structuredClone([s.teams.find((t:any)=>t.id===f.home),s.teams.find((t:any)=>t.id===f.away)]).map(({managerId,...t}:any)=>t);f.weather=matchWeather(s,f);f.actualOpenedAt=opened;const cfg=broadcastSettings(s),first=!s.fixtures.some((v:any)=>v.done),ceremonySeconds=first&&cfg.openingEnabled?cfg.openingSeconds:0,breakSeconds=!first?(s.lastBreakSeconds??(cfg.breakEnabled?cfg.breakSeconds:0)):0,presentationStarted=Math.max(opened+ceremonySeconds*1000,(s.lastMatchEndedAt||0)+breakSeconds*1000);s.live={index,auto:true,source,autoElapsed:0,elapsed:0,opened,ceremonyUntil:ceremonySeconds?presentationStarted:0,breakStarted:s.lastMatchEndedAt||opened,presentationStarted,started:presentationStarted+16000,playbackRate:180/cfg.matchSeconds,running:true,speed:1};
+ ensureMarket(s);const f=s.fixtures[index];f.weatherModel=1;f.engine=5;f.tiebreak=f.knockout?(f.tiebreak||s.knockoutRule||'extraTime'):undefined;f.rosters=structuredClone([s.teams.find((t:any)=>t.id===f.home),s.teams.find((t:any)=>t.id===f.away)]).map(({managerId,...t}:any)=>({...t,players:t.players.map((p:any)=>snapshotPlayer(p,opened)),bench:t.bench.map((p:any)=>snapshotPlayer(p,opened)),reserves:(t.reserves||[]).map((p:any)=>snapshotPlayer(p,opened))}));f.weather=matchWeather(s,f);f.actualOpenedAt=opened;const cfg=broadcastSettings(s),first=!s.fixtures.some((v:any)=>v.done),ceremonySeconds=first&&cfg.openingEnabled?cfg.openingSeconds:0,breakSeconds=!first?(breakDuration(s)):0,presentationStarted=Math.max(opened+ceremonySeconds*1000,(s.lastMatchEndedAt||0)+breakSeconds*1000);s.live={index,auto:true,source,autoElapsed:0,elapsed:0,opened,ceremonyUntil:ceremonySeconds?presentationStarted:0,breakStarted:s.lastMatchEndedAt||opened,presentationStarted,started:presentationStarted+16000,playbackRate:180/cfg.matchSeconds,running:true,speed:1};
 }
-export function confirmMatch(s:any,at=Date.now()){const f=s.fixtures[s.live.index];f.done=true;f.confirmedAt=at;s.live=null;s.lastMatchEndedAt=at;const cfg=broadcastSettings(s);s.lastBreakSeconds=cfg.breakEnabled?cfg.breakSeconds:0;const previousCount=s.fixtures.length;advance(s);applySchedulePlan(s,previousCount);if(s.format==='league'&&s.fixtures.every((f:any)=>f.done))s.champion=table(s)[0]?.id||null;prepareFlow(s,at)}
+export function confirmMatch(s:any,at=Date.now()){const f=s.fixtures[s.live.index];f.done=true;f.confirmedAt=at;applyMatchWear(s,f,events(s,f),at);s.live=null;s.lastMatchEndedAt=at;const cfg=broadcastSettings(s);s.lastBreakSeconds=cfg.breakEnabled?cfg.breakSeconds:0;const previousCount=s.fixtures.length;advance(s);applySchedulePlan(s,previousCount);if(s.format==='league'&&s.fixtures.every((f:any)=>f.done))s.champion=table(s)[0]?.id||null;prepareFlow(s,at)}
 export function scheduledChanges(s:any,now=Date.now()){
  if(awaitsSeasonOpening(s)||s.removedAt||s.registration?.open||s.champion||flowHeld(s,now))return false;let changed=prepareFlow(s,now);
  for(let limit=0;limit<512;limit++){
