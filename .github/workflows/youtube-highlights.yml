@@ -28,8 +28,9 @@ concurrency:
 
 jobs:
   validate:
-    if: github.event_name != 'schedule' && github.event_name != 'workflow_run'
-    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
     permissions:
       contents: read
     steps:
@@ -44,7 +45,7 @@ jobs:
   broadcast:
     needs: validate
     if: always() && !cancelled() && github.event_name != 'pull_request' && (needs.validate.result == 'success' || needs.validate.result == 'skipped') && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}

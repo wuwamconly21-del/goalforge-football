@@ -55,5 +55,5 @@ test('corrupt encrypted remote ledger is refused rather than treated as a new em
 });
 test('native renderer exports real playable video with all moments, audio and deterministic rerender bytes',async()=>{
  assert.equal(spawnSync('ffmpeg',['-version']).status,0,'FFmpeg is required for export verification');const j=job(),out=join(root,'smoke.mp4'),a=await render(j,engine,out,{fps:2}),bytes=await readFile(out),b=await render(j,engine,out,{fps:2});assert.equal(a.hash,b.hash);assert.equal(a.size,b.size);assert(a.size>10000);assert.equal(a.moments,segments(j.snapshot,engine).length);const probe=spawnSync('ffprobe',['-v','error','-show_streams','-of','json',out],{encoding:'utf8'});assert.equal(probe.status,0);const streams=JSON.parse(probe.stdout).streams;assert(streams.some(x=>x.codec_type==='audio'));assert(streams.some(x=>x.codec_type==='video'&&x.width===1280&&x.height===720));
- const p=await painter(j,engine),m=timeline(j,engine).find(x=>x.type==='moment');p.draw(m,Math.min(4,m.duration),12);await writeFile('.migration-private/youtube-preview.png',p.canvas.toBuffer('image/png'));
+ const p=await painter(j,engine),m=timeline(j,engine).find(x=>x.type==='moment');p.draw(m,Math.min(4,m.duration),12);await writeFile(join(root,'preview.png'),p.canvas.toBuffer('image/png'));
 });
