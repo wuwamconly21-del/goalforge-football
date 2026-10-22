@@ -1,0 +1,4 @@
+{
+  "version": "1.19.1",
+  "notes": "GoalForge 1.19.1: skrin gelap telah dibaiki. Fixed a browser timer cleanup error that could crash the app. Clubhouse activities include daily and weekly quests, check-in streaks, shooting practice and earned tickets for choosing a free agent. Stripe checkout remains disabled until merchant setup and testing are complete."
+}

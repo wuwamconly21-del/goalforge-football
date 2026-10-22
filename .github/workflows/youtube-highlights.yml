@@ -1,0 +1,77 @@
+name: GoalForge automatic YouTube highlights
+
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['GoalForge checks and Cloudflare updates']
+    types: [completed]
+    branches: [main]
+  pull_request:
+    paths:
+      - 'automation/youtube/**'
+      - '.github/workflows/youtube-highlights.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - 'automation/youtube/**'
+      - '.github/workflows/youtube-highlights.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: goalforge-youtube-broadcast
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.event_name != 'schedule' && github.event_name != 'workflow_run'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: npm ci --prefix automation/youtube --ignore-scripts
+      - run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - run: npm test --prefix automation/youtube
+  broadcast:
+    needs: validate
+    if: always() && !cancelled() && github.event_name != 'pull_request' && (needs.validate.result == 'success' || needs.validate.result == 'skipped') && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+      YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+      YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+      HIGHLIGHTS_STATE_KEY: ${{ secrets.HIGHLIGHTS_STATE_KEY }}
+      YOUTUBE_VISIBILITY: public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            automation/youtube/package-lock.json
+      - name: Require unattended upload authorization
+        run: |
+          node --input-type=module <<'NODE'
+          const missing=['YOUTUBE_CLIENT_ID','YOUTUBE_CLIENT_SECRET','YOUTUBE_REFRESH_TOKEN','HIGHLIGHTS_STATE_KEY'].filter(k=>!process.env[k]);
+          if(missing.length){console.error('::error::YouTube automation is not activated. Run the authorization helper described in docs/YOUTUBE-AUTO-HIGHLIGHTS.md. Missing: '+missing.join(', '));process.exit(1)}
+          NODE
+      - run: npm ci
+      - run: npm ci --prefix automation/youtube --ignore-scripts
+      - name: Install video encoder
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - name: Check queue, render every match highlight and upload
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node automation/youtube/run.mjs
