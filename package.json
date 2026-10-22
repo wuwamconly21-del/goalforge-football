@@ -1,6 +1,6 @@
 {
   "name": "goalforge-football",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "vite build --config vite.netlify.config.mjs",
     "dev": "vite --config vite.netlify.config.mjs",
-    "test": "node tests/football.test.mjs && node tests/security.test.mjs && node tests/manager.test.mjs && node tests/scheduling-weather.test.mjs && node tests/market.test.mjs && node tests/admins.test.mjs && node tests/admin-delegation.test.mjs && node tests/shootout-rules.test.mjs && node tests/legacy-results.test.mjs && node tests/broadcast.test.mjs && node tests/audio.test.mjs && node tests/tournament-system.test.mjs && node tests/seasons-ads.test.mjs && node tests/highlights-seasons.test.mjs && node tests/automatic-flow.test.mjs && node tests/team-capacity.test.mjs && node tests/season-opening.test.mjs && node tests/manager-claims.test.mjs && node tests/club-development.test.mjs && node tests/club-import.test.mjs && node tests/ultras.test.mjs && node tests/request-loop.test.mjs && node tests/scouting.test.mjs && node tests/premium.test.mjs",
+    "test": "node tests/football.test.mjs && node tests/security.test.mjs && node tests/manager.test.mjs && node tests/scheduling-weather.test.mjs && node tests/market.test.mjs && node tests/admins.test.mjs && node tests/admin-delegation.test.mjs && node tests/shootout-rules.test.mjs && node tests/legacy-results.test.mjs && node tests/broadcast.test.mjs && node tests/audio.test.mjs && node tests/tournament-system.test.mjs && node tests/seasons-ads.test.mjs && node tests/highlights-seasons.test.mjs && node tests/automatic-flow.test.mjs && node tests/team-capacity.test.mjs && node tests/season-opening.test.mjs && node tests/manager-claims.test.mjs && node tests/club-development.test.mjs && node tests/club-import.test.mjs && node tests/ultras.test.mjs && node tests/request-loop.test.mjs && node tests/scouting.test.mjs && node tests/premium.test.mjs && node tests/traffic-budget.test.mjs",
     "test:cloudflare": "node tests/cloudflare-store.test.mjs && node tests/cloudflare-runtime.test.mjs && node tests/cloudflare-import.test.mjs && node tests/cloudflare-quota.test.mjs && node tests/community-rpc.test.mjs",
     "cloudflare:check": "wrangler deploy --dry-run --outdir cloudflare-build",
     "cloudflare:dev": "wrangler dev",

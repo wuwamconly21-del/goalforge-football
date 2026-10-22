@@ -12,6 +12,10 @@ The former Netlify public URL redirects here. Its original records are retained 
 
 For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. Initial migration is complete; use the normal update route for future deployments. Do not rerun first-migration tools against the live instance.
 
+## Version 1.18 — conserve the daily free allowance
+
+Adaptive match/lobby/manager refresh, slower passive chat, ephemeral viewer heartbeats without SQL writes, fifteen-minute recovery sweeps alongside exact match alarms, and direct static assets reduce recurring traffic. A simulated 24-hour passive-viewer test reduces arena/community HTTP requests from 20,160 to 8,640 (57.1%); this is not a whole-account measurement or an unlimited-capacity promise. See [request policy, test and budget](docs/REQUEST-EFFICIENCY.md).
+
 ## Version 1.17 — stadium workshop and Forge Gems preparation
 
 Managers can design stadium seats, roofs, mowing patterns, lights and tifo, with public previews and cached home-pitch rendering. GF unlocks and duplicate-free daily stadium discoveries are available. Forge Gems are a separate cosmetic wallet with isolated preview/sandbox/live records and a fixed-item shop. The ToyyibPay FPX adapter verifies signed callbacks and provider transactions before once-only credit. Checkout is disabled until merchant configuration; no real payment was created or tested. See [setup, verification and launch limitations](docs/TOYYIBPAY-AND-STADIUM.md).
