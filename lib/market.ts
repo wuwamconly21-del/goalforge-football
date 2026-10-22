@@ -46,9 +46,9 @@ export function transferAction(s:any,own:any,b:any){
  let player:any,price:number,seller:any=null,listing:any=null;
  if(b.listingId){listing=market.listings.find((l:any)=>l.id===b.listingId);if(!listing)fail('marketUnavailable');if(listing.seller===own.id)fail('cannotBuyOwn');seller=s.teams.find((t:any)=>t.id===listing.seller);if(!seller||teamInMatch(s,seller.id))fail('marketMatchLocked');player=[...seller.bench,...seller.reserves].find((p:any)=>p.id===listing.playerId);price=listing.price}
  else{player=market.agents.find((p:any)=>p.id===b.playerId);if(!player)fail('marketUnavailable');price=playerValue(player)}
- if(!player)fail('marketUnavailable');if(own.finance.balance<price)fail('insufficientBudget');
+ if(b.useTicket===true&&(b.listingId||!(own.clubQuests?.tickets>0)))fail('marketUnavailable');if(!player)fail('marketUnavailable');if(b.useTicket!==true&&own.finance.balance<price)fail('insufficientBudget');
  // Prices and ownership are resolved entirely on the server, never from the client.
- own.finance.balance-=price;own.reserves.push({...player,position:player.naturalPosition||player.position});lock(own.id);
+ if(b.useTicket===true){own.clubQuests.tickets--;price=0}else own.finance.balance-=price;own.reserves.push({...player,position:player.naturalPosition||player.position});lock(own.id);
  if(seller){seller.finance.balance+=price;for(const part of ['bench','reserves'])seller[part]=seller[part].filter((p:any)=>p.id!==player.id);market.listings=market.listings.filter((l:any)=>l.id!==listing.id);lock(seller.id)}else market.agents=market.agents.filter((p:any)=>p.id!==player.id);
  market.history.unshift({id:crypto.randomUUID(),player:player.name,playerId:player.id,rating:player.rating,from:seller?.name||null,to:own.name,price,season:s.season,at:Date.now()});market.history=market.history.slice(0,200);
 }

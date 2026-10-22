@@ -12,6 +12,10 @@ The former Netlify public URL redirects here. Its original records are retained 
 
 For the requested full migration preserving existing data, use [the GitHub migration workflow](FULL-MIGRATION.md). For future automatic updates, use the GitHub/Cloudflare integration described in `GITHUB-CLOUDFLARE.md`. Initial migration is complete; use the normal update route for future deployments. Do not rerun first-migration tools against the live instance.
 
+## Version 1.19 — daily clubhouse and Stripe preparation
+
+Managers get daily/weekly quests, check-in streaks, replayable shooting practice and earned tickets for selecting visible market players. Stripe replaces ToyyibPay in production, with fixed Gem or exact cosmetic purchases, signed webhooks, independent payment verification and atomic once-only delivery. Checkout remains disabled until merchant setup and a real test-mode round-trip. See [rules, delivery and setup status](docs/STRIPE-AND-CLUB-JOURNEY.md).
+
 ## Version 1.18 — conserve the daily free allowance
 
 Adaptive match/lobby/manager refresh, slower passive chat, ephemeral viewer heartbeats without SQL writes, fifteen-minute recovery sweeps alongside exact match alarms, and direct static assets reduce recurring traffic. A simulated 24-hour passive-viewer test reduces arena/community HTTP requests from 20,160 to 8,640 (57.1%); this is not a whole-account measurement or an unlimited-capacity promise. See [request policy, test and budget](docs/REQUEST-EFFICIENCY.md).

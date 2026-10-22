@@ -1,3 +1,5 @@
+> Archived setup reference. Since v1.19 the production Worker uses Stripe only and ignores ToyyibPay credentials. Use [current Stripe setup](STRIPE-AND-CLUB-JOURNEY.md). The stadium features below remain available.
+
 # Stadium workshop and ToyyibPay preparation — v1.17
 
 ## Available features
