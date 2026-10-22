@@ -1,6 +1,6 @@
 // One timer and one in-flight request per loop. Hidden tabs stop traffic; errors
 // back off and quota exhaustion waits five minutes rather than hammering storage.
-export function startRequestLoop(task:()=>Promise<{ok:boolean,quota?:boolean,delay?:number}>,interval:number,host:any={setTimeout,clearTimeout,document}){
+export function startRequestLoop(task:()=>Promise<{ok:boolean,quota?:boolean,delay?:number}>,interval:number,host:any={setTimeout:(fn:()=>void,ms:number)=>globalThis.setTimeout(fn,ms),clearTimeout:(id:any)=>globalThis.clearTimeout(id),document}){
  let stopped=false,timer:any=null,running=false,failures=0,wakePending=false;const hidden=()=>!!host.document?.hidden;
  const schedule=(ms:number)=>{host.clearTimeout(timer);if(!stopped)timer=host.setTimeout(tick,ms)};
  async function tick(){if(stopped)return;if(running){wakePending=true;return}if(hidden()){schedule(interval);return}running=true;let result:any;try{result=await task()}catch{result={ok:false}}finally{running=false}if(stopped)return;failures=result?.ok?0:failures+1;const delay=result?.quota?300000:result?.ok?(Number.isFinite(result.delay)?Math.max(1000,Math.min(120000,result.delay)):interval):Math.min(120000,Math.max(15000,interval)*2**Math.min(failures-1,3));if(wakePending){wakePending=false;schedule(delay)}else schedule(delay)}
